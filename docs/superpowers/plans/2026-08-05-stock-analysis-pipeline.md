@@ -492,7 +492,7 @@ def pages_url(ticker: str, report_date: str, repo: str = "21dec/ai-stock-analysi
 - [ ] **Step 5: Run tests to verify they pass**
 
 Run: `PYTHONPATH=. python3 -m unittest tests.test_report_builder -v`
-Expected: `OK` — all 6 tests pass.
+Expected: `OK` — all 7 tests pass.
 
 - [ ] **Step 6: Commit**
 
@@ -790,7 +790,7 @@ Expected: `OK` — 2 tests pass.
 - [ ] **Step 5: Run the full test suite to confirm nothing else broke**
 
 Run: `PYTHONPATH=. python3 -m unittest discover -s tests -v`
-Expected: `OK` — all tests across all four test files pass (weather score: 6, report builder: 6, kakao message: 1, generate report: 2 = 15 total).
+Expected: `OK` — all tests across all four test files pass (weather score: 6, report builder: 7, kakao message: 1, generate report: 2 = 16 total).
 
 - [ ] **Step 6: Commit**
 
@@ -964,7 +964,7 @@ git commit -m "Add operational runbook for the stock analysis pipeline"
 - [ ] **Step 1: Run the entire test suite one more time**
 
 Run: `PYTHONPATH=. python3 -m unittest discover -s tests -v`
-Expected: `OK` — 15 tests pass, 0 failures.
+Expected: `OK` — 16 tests pass, 0 failures.
 
 - [ ] **Step 2: Manually exercise the CLI end-to-end**
 
