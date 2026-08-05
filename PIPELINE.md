@@ -1,7 +1,7 @@
 # 주식 분석 파이프라인 실행 방법 (Claude용 운영 가이드)
 
 사용자가 "OOO 분석해서 보내줘" 라고 요청하면 아래 순서를 그대로 따른다.
-설계 배경은 `docs/superpowers/specs/2026-08-05-stock-analysis-pipeline-design.md` 참고.
+설계 배경은 `superpowers/specs/2026-08-05-stock-analysis-pipeline-design.md` 참고.
 
 ## 사전 조건 (1회성 — 아직 완료되지 않았다면 사용자에게 안내)
 
