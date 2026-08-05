@@ -100,21 +100,24 @@ class ComputeWeatherScoreTests(unittest.TestCase):
         self.assertEqual(result.label, "폭풍")
 
     def test_band_boundaries(self):
-        # exact boundary scores map to the band that starts at that score
+        # Each case picks confidence/mtf/rsi fixtures so signal_score_10 stays within
+        # [0, 10] while the weighted total lands exactly on the boundary score. The
+        # 0/폭풍 boundary is not separately tested here — it is unreachable with a
+        # valid signal_score_10 (the formula's true minimum is 11, not 0) and is
+        # already covered by test_weak_bearish_signal_yields_storm (score=16).
         cases = [
-            (80, "☀️", "맑음"),
-            (60, "🌤️", "대체로 맑음"),
-            (40, "⛅", "흐림"),
-            (20, "🌧️", "비"),
-            (0, "⛈️", "폭풍"),
+            # target_score, icon, label, signal_score_10, confidence, mtf_alignment_3, rsi
+            (80, "☀️", "맑음", 6.0, "HIGH", 3, 50.0),
+            (60, "🌤️", "대체로 맑음", 8.8, "LOW", 0, 50.0),
+            (40, "⛅", "흐림", 4.8, "LOW", 0, 50.0),
+            (20, "🌧️", "비", 0.8, "LOW", 0, 50.0),
         ]
-        for target_score, icon, label in cases:
-            # signal_score_10*10*0.5 alone drives the score when other terms are 0-contribution;
-            # solve for signal_score_10 that makes the weighted total land exactly on target_score
-            # using confidence=LOW(30*0.2=6), mtf=0(0), rsi in neutral band(100*0.1=10) -> fixed 16 offset
-            signal_score_10 = (target_score - 16) / 5.0
+        for target_score, icon, label, signal_score_10, confidence, mtf_alignment_3, rsi in cases:
             result = compute_weather_score(
-                signal_score_10=signal_score_10, confidence="LOW", mtf_alignment_3=0, rsi=50.0
+                signal_score_10=signal_score_10,
+                confidence=confidence,
+                mtf_alignment_3=mtf_alignment_3,
+                rsi=rsi,
             )
             self.assertEqual(result.score, target_score, msg=f"target={target_score}")
             self.assertEqual(result.icon, icon)
