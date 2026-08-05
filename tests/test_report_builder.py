@@ -4,6 +4,7 @@ from pathlib import Path
 
 from scripts.pipeline.report_builder import (
     REQUIRED_CONTEXT_KEYS,
+    _TEMPLATE_PATH,
     pages_url,
     render_report,
     report_filename,
@@ -46,6 +47,17 @@ class RenderReportTests(unittest.TestCase):
 
     def test_required_keys_matches_sample_context(self):
         self.assertEqual(REQUIRED_CONTEXT_KEYS, frozenset(SAMPLE_CONTEXT.keys()))
+
+    def test_required_keys_matches_actual_template_placeholders(self):
+        from string import Template
+
+        template_text = _TEMPLATE_PATH.read_text(encoding="utf-8")
+        placeholders = set()
+        for match in Template.pattern.finditer(template_text):
+            name = match.group("named") or match.group("braced")
+            if name:
+                placeholders.add(name)
+        self.assertEqual(REQUIRED_CONTEXT_KEYS, frozenset(placeholders))
 
 
 class PathHelperTests(unittest.TestCase):
