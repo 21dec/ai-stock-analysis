@@ -52,6 +52,8 @@
    PYTHONPATH=. python3 scripts/generate_report.py /tmp/report-input.json
    ```
 
+   필요하면 `--docs-dir`(기본값: <repo>/docs)와 `--repo`(기본값: 21dec/ai-stock-analysis) 옵션으로 경로/저장소를 바꿀 수 있다.
+
    표준출력으로 `{"report_path": "...", "pages_url": "...", "kakao_message": "..."}`
    JSON이 출력된다. 이 세 값을 이후 단계에서 사용한다.
 
