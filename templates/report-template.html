@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${TICKER} 투자 분석 리포트 - ${DATE}</title>
+<style>
+  :root {
+    --accent: #2563eb;
+    --text: #1f2937;
+    --text-muted: #6b7280;
+    --border: #e5e7eb;
+    --bg: #ffffff;
+    --bg-subtle: #f9fafb;
+    --bullish: #059669;
+    --bearish: #dc2626;
+    --neutral: #6b7280;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.6;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 32px 20px 64px;
+  }
+  .titlebar {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+  }
+  .titlebar .name { font-size: 20px; font-weight: 700; }
+  .titlebar .date { font-size: 13px; color: var(--text-muted); }
+  .price { font-size: 32px; font-weight: 700; margin-bottom: 16px; }
+  .badge-row { display: flex; gap: 10px; margin-bottom: 28px; flex-wrap: wrap; }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg-subtle);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .signal-badge.bullish { color: var(--bullish); border-color: var(--bullish); }
+  .signal-badge.bearish { color: var(--bearish); border-color: var(--bearish); }
+  .signal-badge.neutral { color: var(--neutral); border-color: var(--neutral); }
+  .analysis-body h2 {
+    font-size: 16px;
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .analysis-body table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  .analysis-body th, .analysis-body td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; }
+  .analysis-body th { background: var(--bg-subtle); font-weight: 600; }
+  .analysis-body ul, .analysis-body ol { margin: 8px 0 8px 20px; }
+  .footer {
+    margin-top: 48px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+</style>
+</head>
+<body>
+  <div class="titlebar">
+    <span class="name">${COMPANY} (${TICKER})</span>
+    <span class="date">${DATE}</span>
+  </div>
+  <div class="price">${PRICE}</div>
+  <div class="badge-row">
+    <span class="badge weather-badge">${WEATHER_ICON} ${WEATHER_SCORE}점 &middot; ${WEATHER_LABEL}</span>
+    <span class="badge signal-badge ${SIGNAL_CLASS}">${SIGNAL} &middot; ${CONFIDENCE} &middot; ${HORIZON}</span>
+  </div>
+  <div class="analysis-body">
+${ANALYSIS_BODY_HTML}
+  </div>
+  <div class="footer">
+    본 리포트는 AI가 생성한 정보 제공용 자료이며 투자 자문이 아닙니다. 투자 결정 전에 반드시 별도로 검증하시기 바랍니다.
+  </div>
+</body>
+</html>
