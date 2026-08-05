@@ -24,6 +24,7 @@ SAMPLE_CONTEXT = {
     "CONFIDENCE": "HIGH",
     "HORIZON": "LONG-TERM",
     "ANALYSIS_BODY_HTML": "<h2>Summary</h2><p>Test body.</p>",
+    "CHART_DATA_JSON": '{"labels": ["08-01", "08-04"], "price": [270.0, 277.42], "ma20": [265.0, 247.42]}',
 }
 
 
@@ -36,6 +37,7 @@ class RenderReportTests(unittest.TestCase):
         self.assertIn("82", html)
         self.assertIn('class="badge signal-badge bullish"', html)
         self.assertIn("<h2>Summary</h2><p>Test body.</p>", html)
+        self.assertIn('{"labels": ["08-01", "08-04"]', html)
         # design constraint: no left-border accent styling anywhere
         self.assertNotIn("border-left", html)
 

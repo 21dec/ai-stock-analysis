@@ -18,6 +18,7 @@ SAMPLE_INPUT = {
     "signal": "BULLISH",
     "horizon": "LONG-TERM",
     "analysis_body_html": "<h2>Summary</h2><p>Test body.</p>",
+    "chart": {"labels": ["08-01", "08-04"], "price": [270.0, 277.42], "ma20": [265.0, 247.42]},
 }
 
 
@@ -35,6 +36,10 @@ class BuildContextTests(unittest.TestCase):
         self.assertEqual(context["SIGNAL_CLASS"], "bullish")
         self.assertEqual(context["TICKER"], "AAPL")
         self.assertEqual(context["ANALYSIS_BODY_HTML"], "<h2>Summary</h2><p>Test body.</p>")
+        self.assertEqual(
+            context["CHART_DATA_JSON"],
+            '{"labels": ["08-01", "08-04"], "price": [270.0, 277.42], "ma20": [265.0, 247.42]}',
+        )
 
 
 class MainCliTests(unittest.TestCase):
@@ -62,6 +67,7 @@ class MainCliTests(unittest.TestCase):
             html = expected_report_path.read_text(encoding="utf-8")
             self.assertIn("AAPL", html)
             self.assertIn("<h2>Summary</h2><p>Test body.</p>", html)
+            self.assertIn('"ma20": [265.0, 247.42]', html)
 
             self.assertEqual(
                 result["pages_url"],

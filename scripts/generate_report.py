@@ -32,6 +32,7 @@ def build_context(data: dict, weather: WeatherResult) -> dict:
         "CONFIDENCE": data["confidence"],
         "HORIZON": data["horizon"],
         "ANALYSIS_BODY_HTML": data["analysis_body_html"],
+        "CHART_DATA_JSON": json.dumps(data["chart"], ensure_ascii=False),
     }
 
 

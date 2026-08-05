@@ -20,6 +20,7 @@ REQUIRED_CONTEXT_KEYS = frozenset(
         "CONFIDENCE",
         "HORIZON",
         "ANALYSIS_BODY_HTML",
+        "CHART_DATA_JSON",
     }
 )
 
