@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>000660 투자 분석 리포트 - 20260813</title>
+<style>
+  :root {
+    --accent: #2563eb;
+    --text: #1f2937;
+    --text-muted: #6b7280;
+    --border: #e5e7eb;
+    --bg: #ffffff;
+    --bg-subtle: #f9fafb;
+    --bullish: #059669;
+    --bearish: #dc2626;
+    --neutral: #6b7280;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.6;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 32px 20px 64px;
+  }
+  .titlebar {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+  }
+  .titlebar .name { font-size: 20px; font-weight: 700; color: var(--accent); }
+  .titlebar .date { font-size: 13px; color: var(--text-muted); }
+  .price { font-size: 32px; font-weight: 700; margin-bottom: 16px; }
+  .badge-row { display: flex; gap: 10px; margin-bottom: 28px; flex-wrap: wrap; }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg-subtle);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .signal-badge.bullish { color: var(--bullish); border-color: var(--bullish); }
+  .signal-badge.bearish { color: var(--bearish); border-color: var(--bearish); }
+  .signal-badge.neutral { color: var(--neutral); border-color: var(--neutral); }
+  .analysis-body h2 {
+    font-size: 16px;
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .analysis-body table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  .analysis-body th, .analysis-body td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; }
+  .analysis-body th { background: var(--bg-subtle); font-weight: 600; }
+  .analysis-body ul, .analysis-body ol { margin: 8px 0 8px 20px; }
+  .chart-wrap {
+    border: 1px solid var(--border);
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 28px;
+  }
+  .footer {
+    margin-top: 48px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+</style>
+</head>
+<body>
+  <div class="titlebar">
+    <span class="name">SK하이닉스 (000660)</span>
+    <span class="date">20260813</span>
+  </div>
+  <div class="price">1,614,000원</div>
+  <div class="badge-row">
+    <span class="badge weather-badge">⛅ 54점 &middot; 흐림</span>
+    <span class="badge signal-badge neutral">NEUTRAL &middot; MEDIUM &middot; SHORT-TERM</span>
+  </div>
+  <div class="chart-wrap">
+    <canvas id="priceChart" height="220"></canvas>
+  </div>
+  <div class="analysis-body">
+<style>
+  .analysis-body .note {
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin: 14px 0;
+    font-size: 13px;
+  }
+  .analysis-body .note.warn { border-color: #fcd34d; background: #fffbeb; }
+  .analysis-body .note.danger { border-color: #fca5a5; background: #fef2f2; }
+  .analysis-body .note strong { display: block; margin-bottom: 4px; }
+  .analysis-body .kv {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin: 14px 0;
+  }
+  .analysis-body .kv div {
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .analysis-body .kv span { display: block; font-size: 11px; color: #6b7280; }
+  .analysis-body .kv b { font-size: 15px; }
+  .analysis-body .scroll { overflow-x: auto; }
+  .analysis-body pre {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11px;
+    line-height: 1.45;
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 12px;
+    margin: 12px 0;
+    overflow-x: auto;
+  }
+  .analysis-body td.up, .analysis-body span.up { color: #059669; font-weight: 600; }
+  .analysis-body td.dn, .analysis-body span.dn { color: #dc2626; font-weight: 600; }
+  .analysis-body .verdict {
+    border: 2px solid #6b7280;
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin: 20px 0;
+    background: #f9fafb;
+  }
+  .analysis-body .verdict h3 { font-size: 15px; margin-bottom: 10px; }
+  .analysis-body .verdict table { margin: 0; }
+  .analysis-body .verdict td { border: none; padding: 4px 0; }
+  .analysis-body .verdict td:first-child { width: 90px; color: #6b7280; font-size: 12px; }
+  .analysis-body .src { font-size: 12px; }
+</style>
+
+<div class="note warn">
+  <strong>&#9888; 장중 진행봉 주의</strong>
+  본 리포트는 <b>2026-08-13 12:46 KST</b> 기준으로 작성됐습니다. KRX 정규장 마감(15:30) 전이므로
+  08-13 봉(종가 1,614,000원, 거래량 2,486,581주)은 <b>미완성 봉</b>이며 마감까지 변할 수 있습니다.
+  종가 기반 지표(MA·RSI·MACD 등)는 잠정치이며, 확정 신호는 08-12 완성봉(종가 1,504,000원) 기준으로 교차 검증했습니다.
+  <br><br>
+  <b>데이터 출처</b>: Naver Finance 시세 API — 일봉 1,128개 / 주봉 / 월봉 실데이터
+</div>
+
+<h2>0. 한눈에 보기</h2>
+
+<div class="kv">
+  <div><span>현재가</span><b>1,614,000원</b></div>
+  <div><span>전일 대비</span><b class="up">+7.31%</b></div>
+  <div><span>ATH 대비</span><b class="dn">-46.0%</b></div>
+  <div><span>07/29 저점 대비</span><b class="up">+29.5%</b></div>
+  <div><span>250일 수익률</span><b class="up">+525.6%</b></div>
+  <div><span>MTF 정렬</span><b>1 / 3</b></div>
+  <div><span>RSI(14)</span><b>46.2</b></div>
+  <div><span>ATR(14)</span><b>11.22%</b></div>
+</div>
+
+<p><b>요약</b> — 장기(월봉) 대세 상승은 훼손되지 않았지만 단·중기 추세는 무너진 상태입니다.
+현재가 1,614,000원은 MA20(1,622,450)과 MA120(1,603,675) 사이 1만 9천원 폭에 압착돼 있습니다.
+<b>1,536,000원</b>(3개월 VAL + 피보 38.2% 합류)을 지키며 <b>1,718,000원</b>을 거래량과 함께 돌파하면
+이중바닥 완성으로 2,190,000원을 노릴 수 있으나, 그 전까지는 관망이 유일하게 규칙에 맞는 선택입니다.</p>
+
+<h2>1. 이동평균 배열</h2>
+
+<table>
+  <thead>
+    <tr><th>MA</th><th>값</th><th>vs 현재가</th><th>위치</th><th>역할</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>MA5</td><td>1,477,000원</td><td class="up">+9.28%</td><td class="up">위</td><td>초단기</td></tr>
+    <tr><td>MA10</td><td>1,541,000원</td><td class="up">+4.74%</td><td class="up">위</td><td>단기</td></tr>
+    <tr><td>MA20</td><td>1,622,450원</td><td class="dn">-0.52%</td><td class="dn">아래</td><td>볼린저 중심선 &mdash; 접전 중</td></tr>
+    <tr><td>MA30</td><td>1,796,233원</td><td class="dn">-10.15%</td><td class="dn">아래</td><td>단기 추세</td></tr>
+    <tr><td>MA60</td><td>2,063,550원</td><td class="dn">-21.79%</td><td class="dn">아래</td><td>중기 추세</td></tr>
+    <tr><td>MA90</td><td>1,822,778원</td><td class="dn">-11.45%</td><td class="dn">아래</td><td>중장기</td></tr>
+    <tr><td>MA120</td><td>1,603,675원</td><td class="up">+0.64%</td><td class="up">위</td><td>반년선 &mdash; 접전 중</td></tr>
+    <tr><td>MA200</td><td>1,223,835원</td><td class="up">+31.88%</td><td class="up">위</td><td>장기 강세/약세선</td></tr>
+    <tr><td>MA365</td><td>784,345원</td><td class="up">+105.78%</td><td class="up">위</td><td>연간 기준선</td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <strong>MA 정배열 판정: 혼재(MIXED) &mdash; 정배열 붕괴</strong>
+  실제 순서: MA60 &gt; MA90 &gt; MA30 &gt; MA120 &gt; MA200 &gt; MA365<br>
+  정배열 조건(MA30 &gt; MA60 &gt; MA90 &gt; MA200 &gt; MA365) 불충족 &rarr;
+  <b>급등 후 고점 붕괴형 배열</b>. 장기선은 살아있고 단·중기선만 무너진 형태입니다.
+</div>
+
+<p><b>핵심 구조</b>: 현재가는 MA20(1,622,450)과 MA120(1,603,675) 사이에 정확히 끼어 있습니다.
+이 두 선의 돌파 방향이 단기 향방을 결정합니다.</p>
+
+<h2>2. MA 교차 신호</h2>
+
+<table>
+  <thead>
+    <tr><th>교차 이벤트</th><th>유형</th><th>발생일</th><th>경과</th><th>의미</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><b>MA30 &darr; MA60</b></td><td class="dn"><b>데드크로스 (단기)</b></td><td><b>2026-08-04</b></td><td><b>7거래일</b></td><td><b>단기 추세 하락 전환 &mdash; 아직 유효</b></td></tr>
+    <tr><td>MA30 &uarr; MA60</td><td class="up">골든크로스 (단기)</td><td>2025-09-18</td><td>218일</td><td>직전 상승 사이클 시작점</td></tr>
+    <tr><td>MA50 &uarr; MA200</td><td class="up">골든크로스 (정통)</td><td>2025-02-19</td><td>362일</td><td>장기 강세 레짐 &mdash; 여전히 유지 중</td></tr>
+    <tr><td>MA50 &darr; MA200</td><td class="dn">데드크로스 (정통)</td><td>2024-10-10</td><td>449일</td><td>종료됨</td></tr>
+  </tbody>
+</table>
+
+<p><b>MA200 레짐</b>: 최근 300거래일간 MA200 이탈 전환이 <b>단 한 번도 없었습니다</b>.
+장기 강세 레짐은 훼손되지 않았습니다(현재가 MA200 대비 +31.88%).</p>
+
+<p><b>가장 최근 교차 = 8일 전 단기 데드크로스.</b> 이것이 현재 국면의 성격을 규정합니다 &mdash;
+장기 상승 추세 안에서 발생한 단기 추세 붕괴.</p>
+
+<h2>3. 매매 권고</h2>
+
+<div class="verdict">
+  <h3>&#9210; HOLD (관망) &mdash; 신규 진입 보류</h3>
+  <table>
+    <tr><td>현재가</td><td><b>1,614,000원</b></td></tr>
+    <tr><td>근거</td><td>MTF 정렬 <b>1/3</b> &mdash; 월봉 강세 vs 주봉·일봉 약세로 정면 충돌. 스킬 규칙상 2/3 미달 시 신규 진입 금지.</td></tr>
+    <tr><td>기준선</td><td>MA20(1,622,450) 저항 / MA120(1,603,675) 지지 사이 압착. MA30(1,796,233)이 상방 저항으로 하락 중.</td></tr>
+    <tr><td>기간</td><td>단기 (1주~3개월)</td></tr>
+  </table>
+</div>
+
+<h3 style="font-size:14px;margin:20px 0 8px;">조건부 매수 계획 (MTF 2/3 회복 시에만)</h3>
+
+<table>
+  <thead>
+    <tr><th></th><th>플랜 A &mdash; 눌림목 분할 매수 <span class="up">(선호)</span></th><th>플랜 B &mdash; 돌파 추격</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><b>진입</b></td><td>1,480,000 ~ 1,540,000원 (분할)</td><td>일봉 종가 1,718,000원 상회 + 거래량 20일평균(570만) 초과</td></tr>
+    <tr><td><b>손절</b></td><td>1,240,000원 (07/29 저점 1,246,000 하단)</td><td>1,530,000원</td></tr>
+    <tr><td><b>1차 목표</b></td><td>1,790,000원 (MA30 + 일목 기준선 합류)</td><td>1,900,000원 (HVN 밀집대 하단)</td></tr>
+    <tr><td><b>2차 목표</b></td><td>2,100,000원 (피보 50% + 일봉 구름 하단)</td><td>&mdash;</td></tr>
+    <tr><td><b>R/R</b></td><td>1 : 1.04 (1차) / <b>1 : 2.19 (2차)</b></td><td class="dn">1 : 0.97 &mdash; 불량, 비권장</td></tr>
+    <tr><td><b>근거</b></td><td>3개월 VAL 1,536,167 + 반등폭 피보 38.2% 1,537,696 &rarr; 두 지지선이 1,536,000원대에서 합류</td><td>이중바닥 넥라인 돌파 확인</td></tr>
+  </tbody>
+</table>
+
+<div class="note danger">
+  <strong>&#9888; R/R이 구조적으로 불량한 이유</strong>
+  ATR14가 <b>181,017원 = 주가의 11.22%</b>입니다. 정상 종목의 3~4배 변동성입니다.
+  의미 있는 지지선까지의 거리가 1.5 ATR도 안 되는 구간이 많아,
+  <b>정상 손절폭을 쓰면 R/R이 무너지고, R/R을 맞추려 손절을 좁히면 노이즈에 걸립니다.</b>
+  진입한다면 <b>포지션 크기를 평시의 1/3로 축소</b>하는 것이 이 변동성에 대한 유일한 정직한 대응입니다.
+</div>
+
+<h2>4. 추세 및 모멘텀</h2>
+
+<table>
+  <thead><tr><th>지표</th><th>값</th><th>판정</th></tr></thead>
+  <tbody>
+    <tr><td>ADX(14)</td><td>31.8</td><td><b>강한 추세 존재</b> (25 이상)</td></tr>
+    <tr><td>+DI / -DI</td><td>21.5 / <b>33.1</b></td><td class="dn"><b>-DI 우위 &rarr; 하락 방향</b></td></tr>
+    <tr><td>RSI(14)</td><td>46.2 (5일 전 40.6)</td><td class="up">중립, 상승 반전 중</td></tr>
+    <tr><td>Stochastic %K / %D</td><td>64.0 / 43.1</td><td class="up"><b>%K가 %D 상향 돌파 &rarr; 매수 신호</b></td></tr>
+    <tr><td>MACD</td><td>-155,601</td><td class="dn">0선 아래 깊숙히 (약세 영역)</td></tr>
+    <tr><td>MACD Signal</td><td>-170,289</td><td>&mdash;</td></tr>
+    <tr><td>MACD 히스토그램</td><td><b>+14,688</b> (전일 +636)</td><td class="up"><b>08-12 양전환 &rarr; 단기 매수 전환</b></td></tr>
+    <tr><td>볼린저 %B</td><td>48.8</td><td>중심선 부근</td></tr>
+    <tr><td>볼린저 밴드폭</td><td><b>43.14%</b> (120일 백분위 46.7)</td><td>극단적 확장 &mdash; 변동성 폭발</td></tr>
+    <tr><td>ATR(14)</td><td>181,017원 (11.22%)</td><td class="dn">매우 높음</td></tr>
+    <tr><td>OBV 20일 추세</td><td>하락</td><td class="dn">분산(매도) 우위</td></tr>
+  </tbody>
+</table>
+
+<p><b>모멘텀 요약</b>: ADX·DI는 여전히 <b>하락 추세 유효</b>를 말하지만, RSI·Stochastic·MACD 히스토그램
+3개가 <b>동시에 상향 반전</b>했습니다. 전형적인 "추세는 하락, 모멘텀은 반등" 국면 &mdash; 지속성 여부가 아직 미확인입니다.</p>
+
+<h3 style="font-size:14px;margin:20px 0 8px;">수익률 스펙트럼</h3>
+
+<table>
+  <thead><tr><th>기간</th><th>수익률</th><th>해석</th></tr></thead>
+  <tbody>
+    <tr><td>5일</td><td class="up">+8.0%</td><td>단기 반등 진행</td></tr>
+    <tr><td>20일</td><td class="dn">-22.5%</td><td>급락 충격 지배</td></tr>
+    <tr><td>60일</td><td class="dn">-12.3%</td><td>ATH 대비 조정</td></tr>
+    <tr><td>120일</td><td class="up">+83.4%</td><td>중기 상승 견고</td></tr>
+    <tr><td>250일</td><td class="up"><b>+525.6%</b></td><td><b>HBM 슈퍼사이클 &mdash; 1년 6.3배</b></td></tr>
+    <tr><td>ATH 대비</td><td class="dn"><b>-46.0%</b></td><td>반토막</td></tr>
+    <tr><td>07/29 저점 대비</td><td class="up">+29.5%</td><td>기술적 반등 성립</td></tr>
+  </tbody>
+</table>
+
+<p>52주 고가 2,987,000원 / 저가 245,000원 &mdash; <b>12.2배 레인지</b>.
+이 구간의 어떤 신호도 정상 종목 기준으로 해석하면 안 됩니다.</p>
+
+<h2>5. 지지 / 저항</h2>
+
+<table>
+  <thead><tr><th>구분</th><th>가격</th><th>강도</th><th>근거</th></tr></thead>
+  <tbody>
+    <tr><td>저항 3</td><td><b>2,305,108원</b></td><td>매우 강</td><td><b>3개월 POC (최대 거래 집중대)</b></td></tr>
+    <tr><td>저항 3</td><td>2,085,000원</td><td>매우 강</td><td>일봉 일목 구름 하단</td></tr>
+    <tr><td>저항 2</td><td>1,900,000원</td><td>강</td><td>HVN 밀집(1,811,825~1,898,875, 거래량 8.97%)</td></tr>
+    <tr><td>저항 2</td><td>1,796,233원</td><td>강</td><td>MA30</td></tr>
+    <tr><td>저항 2</td><td>1,787,500원</td><td>강</td><td>일목 기준선 (MA30과 합류)</td></tr>
+    <tr><td>저항 1</td><td>1,718,000원</td><td>중</td><td>07/31 고가·종가 (당일 고가 마감) &mdash; 이중바닥 넥라인</td></tr>
+    <tr><td>저항 1</td><td><b>1,656,876원</b></td><td>중</td><td><b>피보 23.6% 되돌림 &mdash; 즉시 저항</b></td></tr>
+    <tr><td>저항 1</td><td>1,634,000원</td><td>약</td><td>금일 장중 고가</td></tr>
+    <tr style="background:#eff6ff;"><td><b>현재가</b></td><td><b>1,614,000원</b></td><td>&mdash;</td><td>&mdash;</td></tr>
+    <tr><td>지지 1</td><td>1,603,675원</td><td>중</td><td>MA120 (반년선)</td></tr>
+    <tr><td>지지 1</td><td>1,567,000원</td><td>약</td><td>금일 장중 저가</td></tr>
+    <tr><td>지지 1</td><td><b>1,536,167원</b></td><td><b>강</b></td><td><b>3개월 VAL + 피보 38.2%(1,537,696) 합류</b></td></tr>
+    <tr><td>지지 2</td><td>1,497,667원</td><td>중</td><td>피봇 PP (08-12 기준)</td></tr>
+    <tr><td>지지 2</td><td>1,482,000원</td><td>중</td><td>반등폭 50% 되돌림</td></tr>
+    <tr><td>지지 3</td><td>1,426,304원</td><td>중</td><td>반등폭 61.8% 되돌림</td></tr>
+    <tr><td>지지 3</td><td>1,373,000~1,397,000원</td><td>강</td><td>08/10·08/11 스윙 저점</td></tr>
+    <tr><td>지지 4</td><td><b>1,246,000원</b></td><td>매우 강</td><td><b>07/29 급락 저점 &mdash; 최종 방어선</b></td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <strong>가장 중요한 한 줄: 1,536,000원</strong>
+  3개월 밸류에어리아 하단(VAL)과 반등폭 피보 38.2%가 겹칩니다.
+  이 선을 <b>종가로</b> 잃으면 1,426,000 &rarr; 1,246,000 경로가 열립니다.
+  지키면 1,536,000~1,718,000 박스 형성입니다.
+</div>
+
+<h3 style="font-size:14px;margin:20px 0 8px;">피보나치 되돌림</h3>
+
+<table>
+  <thead><tr><th colspan="2">하락분 되돌림 (ATH 2,987,000 &rarr; 저점 1,246,000)</th><th colspan="2">반등폭 되돌림 (저점 1,246,000 &rarr; 1,718,000)</th></tr></thead>
+  <tbody>
+    <tr><td>23.6%</td><td><b>1,656,876원</b></td><td>38.2%</td><td><b>1,537,696원</b></td></tr>
+    <tr><td>38.2%</td><td>1,911,062원</td><td>50.0%</td><td>1,482,000원</td></tr>
+    <tr><td>50.0%</td><td>2,116,500원</td><td>61.8%</td><td>1,426,304원</td></tr>
+    <tr><td>61.8%</td><td>2,321,938원</td><td>&mdash;</td><td>&mdash;</td></tr>
+    <tr><td>78.6%</td><td>2,614,426원</td><td>&mdash;</td><td>&mdash;</td></tr>
+  </tbody>
+</table>
+
+<h2>6. 거래량 프로파일 (최근 3개월)</h2>
+
+<pre>  가격대                       거래비중
+  2,290,600~2,334,125  5.66%  ########################################  &lt;- POC
+  2,247,075~2,290,600  5.08%  ###################################
+  1,811,825~1,855,350  4.83%  ##################################        &lt;- HVN
+  2,160,025~2,203,550  4.43%  ###############################
+  1,855,350~1,898,875  4.14%  #############################             &lt;- HVN
+  1,768,300~1,811,825  3.71%  ##########################
+  2,116,500~2,160,025  3.66%  #########################
+  2,072,975~2,116,500  3.48%  ########################</pre>
+
+<div class="kv">
+  <div><span>POC</span><b>2,305,108원</b></div>
+  <div><span>VAH</span><b>2,406,667원</b></div>
+  <div><span>VAL</span><b>1,536,167원</b></div>
+  <div><span>현재가 위치</span><b>VAL +5.1%</b></div>
+</div>
+
+<p><b>해석</b>: 현재가는 <b>3개월 밸류에어리아 하단 바로 위</b>에 있습니다.
+위쪽 <b>1,768,000~2,334,000원 구간에 거래량의 약 35%가 매물대로 쌓여 있습니다</b> &mdash;
+이 구간에서 물린 매수자들의 본전 매도 압력이 반등의 천장을 낮춥니다.
+VAL(1,536,167) 아래로 이탈하면 저볼륨 구간이라 하락이 빨라집니다.</p>
+
+<h2>7. 일목균형표 (일봉)</h2>
+
+<table>
+  <thead><tr><th>요소</th><th>값</th><th>판정</th></tr></thead>
+  <tbody>
+    <tr><td>전환선 (Tenkan)</td><td>1,537,000원</td><td class="up">현재가 위 &#10003;</td></tr>
+    <tr><td>기준선 (Kijun)</td><td>1,787,500원</td><td class="dn">현재가 아래 &#10007;</td></tr>
+    <tr><td>TK 교차</td><td>전환선 &lt; 기준선</td><td class="dn">약세 &#10007;</td></tr>
+    <tr><td>구름대 (현재)</td><td>2,085,000 ~ 2,468,500원</td><td class="dn">가격이 구름 아래 &#10007;</td></tr>
+    <tr><td>구름 색 (현재)</td><td>녹색</td><td>형식상 양운</td></tr>
+    <tr><td>구름 색 (26일 후)</td><td><b>적색 전환</b></td><td class="dn"><b>쿠모 트위스트 (약세) &#10007;</b></td></tr>
+    <tr><td>지행선 (Chikou)</td><td>1,614,000원 vs 26일 전 2,201,000원</td><td class="dn">아래 &#10007;</td></tr>
+  </tbody>
+</table>
+
+<div class="note danger">
+  <strong>일목 신호 강도: 0/5 강세 조건 충족 &rarr; 약세(Bearish)</strong>
+  일봉 일목은 5개 조건 전부 약세입니다. 특히 가격이 구름대(2,085,000)보다 <b>-22.6% 아래</b>에 있어
+  구름 회복까지 상당한 거리가 있습니다. 26일 후 구름이 적색 전환하는 <b>쿠모 트위스트</b>는
+  중기 저항이 더 강해진다는 선행 경고입니다.
+</div>
+
+<p><b>주봉 일목은 반대입니다</b> &mdash; 구름대가 546,850~658,000원으로 가격이 한참 위에 있어(장기 강세),
+다만 전환선(2,116,500)·기준선(1,896,500) 모두 가격 위에 있어 중기 조정 상태입니다.</p>
+
+<h2>8. 멀티 타임프레임 분석 (MTF)</h2>
+
+<p><b>스윙 트레이딩 설정</b> &mdash; 상위: 월봉 / 주요: 주봉 / 하위: 일봉</p>
+
+<div class="scroll">
+<table>
+  <thead><tr><th>타임프레임</th><th>추세</th><th>핵심 신호</th><th>지지</th><th>저항</th><th>정렬</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><b>월봉 (상위)</b></td><td class="up">상승</td>
+      <td>RSI 62.5, MACD히스 +139,300, ADX 64.1 (+DI 41.5 vs -DI 11.7), 전 MA 위</td>
+      <td>1,734,667 (M-MA6)</td><td>2,987,000</td><td class="up"><b>강세</b></td>
+    </tr>
+    <tr>
+      <td><b>주봉 (주요)</b></td><td class="dn">하락</td>
+      <td>RSI 50.2, MACD히스 <b>-112,036</b>, ADX 44.8 (<b>-DI 26.6 &gt; +DI 23.1</b>), W-MA10·20 아래</td>
+      <td>1,503,433 (W-MA30)</td><td>1,796,750 (W-MA20)</td><td class="dn"><b>약세</b></td>
+    </tr>
+    <tr>
+      <td><b>일봉 (하위)</b></td><td class="dn">하락 (반등 중)</td>
+      <td>데드크로스 8일 전, 일목 0/5, -DI 우위 / 단 MACD·Stoch 상향 반전</td>
+      <td>1,536,167</td><td>1,656,876</td><td><b>중립</b></td>
+    </tr>
+    <tr style="background:#f9fafb;">
+      <td><b>종합</b></td><td><b>충돌</b></td><td colspan="3"><b>정렬 점수: 1 / 3</b></td><td class="dn"><b>진입 금지</b></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="note danger">
+  <strong>MTF 정렬 점수: 1 / 3 &rarr; 약세/상충</strong>
+  스킬 규칙: "1/3 이하 등급의 매매는 절대 진입하지 않는다. 최소 2/3 확보 후 진입."
+  &rarr; <b>신규 포지션 금지. 방향성 해소 대기.</b>
+</div>
+
+<p><b>충돌의 본질</b>: 월봉은 HBM 슈퍼사이클로 ADX 64라는 극강 상승 추세를 유지하는데,
+주봉·일봉은 -58% 급락 충격을 소화하는 중입니다. 이는
+<b>"장기 대세 상승 중 발생한 대형 조정"</b>의 교과서적 형태이며,
+조정의 종료 시점은 아직 기술적으로 확인되지 않았습니다.</p>
+
+<h2>9. 패턴 및 캔들 분석</h2>
+
+<h3 style="font-size:14px;margin:20px 0 8px;">진행 중 패턴 &mdash; 잠재적 이중바닥 (미완성)</h3>
+
+<table>
+  <thead><tr><th>요소</th><th>값</th></tr></thead>
+  <tbody>
+    <tr><td>1차 저점</td><td>1,246,000원 (07/29)</td></tr>
+    <tr><td>2차 저점</td><td>1,373,000원 (08/11) &rarr; <span class="up">고점 상승형 저점(higher low)</span></td></tr>
+    <tr><td>넥라인</td><td>1,718,000원 (07/31 고가)</td></tr>
+    <tr><td>완성 조건</td><td>1,718,000원 종가 돌파 + 거래량 확대</td></tr>
+    <tr><td>성립 시 목표</td><td>1,718,000 + (1,718,000 - 1,246,000) = <b>2,190,000원</b></td></tr>
+    <tr><td>무효 조건</td><td>1,373,000원 종가 이탈</td></tr>
+    <tr><td>현재 상태</td><td><b>미완성 &mdash; 넥라인까지 +6.4%</b></td></tr>
+  </tbody>
+</table>
+
+<h3 style="font-size:14px;margin:20px 0 8px;">최근 6봉 캔들</h3>
+
+<table>
+  <thead><tr><th>날짜</th><th>등락</th><th>몸통</th><th>형태</th></tr></thead>
+  <tbody>
+    <tr><td>08/06</td><td class="dn">-10.37%</td><td>84%</td><td>장대음봉 (패닉 셀링)</td></tr>
+    <tr><td>08/07</td><td class="dn">-4.88%</td><td>74%</td><td>음봉</td></tr>
+    <tr><td>08/10</td><td>-0.14%</td><td>26%</td><td><b>도지/스피닝탑 &mdash; 매도 소진</b></td></tr>
+    <tr><td>08/11</td><td>+0.35%</td><td>24%</td><td><b>도지/스피닝탑 &mdash; 균형</b></td></tr>
+    <tr><td>08/12</td><td class="up">+5.54%</td><td>44%</td><td>양봉 (반전 시작)</td></tr>
+    <tr><td>08/13</td><td class="up">+7.31%</td><td>48%</td><td>양봉 (진행 중, +2.1% 갭상승)</td></tr>
+  </tbody>
+</table>
+
+<p><b>도지 2연속 &rarr; 양봉 2연속</b> 시퀀스는 단기 바닥 형성의 전형입니다. 다만
+<b>거래량이 따라오지 않았습니다</b>(08/10 330만, 08/11 382만, 08/12 457만 vs 급락일 950만~1,240만).
+반등이 매수 유입보다 <b>매도 소진</b>에 의한 것임을 시사합니다.</p>
+
+<h3 style="font-size:14px;margin:20px 0 8px;">미결 갭</h3>
+
+<table>
+  <thead><tr><th>날짜</th><th>방향</th><th>구간</th><th>상태</th></tr></thead>
+  <tbody>
+    <tr><td>08/13</td><td class="up">상승갭 +2.1%</td><td>1,549,000 &rarr; 1,582,000</td><td>미충족 (되돌림 시 1차 지지)</td></tr>
+    <tr><td>08/06</td><td class="dn">하락갭 -2.9%</td><td>1,647,000 &rarr; 1,600,000</td><td>미충족 &mdash; 상방 저항</td></tr>
+    <tr><td>07/31</td><td class="up">상승갭 <b>+16.3%</b></td><td>1,459,000 &rarr; 1,697,000</td><td>미충족 (붕괴 시 급락 위험)</td></tr>
+    <tr><td>07/16</td><td class="dn">하락갭 -8.1%</td><td>2,070,000 &rarr; 1,902,000</td><td>미충족 &mdash; 강력 저항</td></tr>
+  </tbody>
+</table>
+
+<p>07/31의 <b>+16.3% 갭</b>은 아래에 지지 근거가 전혀 없는 공백 구간입니다.
+1,536,000원이 무너지면 이 갭을 메우러 1,459,000원까지 빠르게 내려갈 수 있습니다.</p>
+
+<h2>10. 수급 및 시장 맥락</h2>
+
+<h3 style="font-size:14px;margin:20px 0 8px;">외국인 소진율 추이</h3>
+
+<table>
+  <thead><tr><th>날짜</th><th>소진율</th><th>변화</th></tr></thead>
+  <tbody>
+    <tr><td>07/24</td><td>52.44%</td><td>&mdash;</td></tr>
+    <tr><td>07/28</td><td>50.85%</td><td class="dn"><b>-1.59%p (대량 이탈)</b></td></tr>
+    <tr><td>08/07</td><td>50.81%</td><td class="dn">하락 지속</td></tr>
+    <tr><td>08/11</td><td><b>50.74%</b></td><td class="dn"><b>저점</b></td></tr>
+    <tr><td>08/13</td><td>50.83%</td><td class="up"><b>+0.09%p 반등</b></td></tr>
+  </tbody>
+</table>
+
+<p>급락 국면에서 외국인이 약 1.7%p 이탈했고, 최근 2거래일 소폭 순유입으로 전환했습니다.
+반등의 유일한 수급 근거이지만 규모가 미미합니다.</p>
+
+<h3 style="font-size:14px;margin:20px 0 8px;">급락 배경 (2026-08-06, -10.37%)</h3>
+
+<p>매크로 스트레스(WTI +2.75%, 미 10년물 4.670%), 샌디스크 가이던스 쇼크로 인한 메모리 섹터
+내러티브 훼손, 외국인 현물 바스켓 집중 매도(-1.69조원)가 동시에 충돌한 유동성 발작입니다.
+당일 KOSPI도 -4.58% 급락하며 연중 24번째 매도 사이드카가 발동됐습니다.
+<b>개별 종목 이슈가 아닌 시스템적 패닉</b>이었다는 점은 반등 가능성 측면에서 긍정적 요소입니다.</p>
+
+<h2>11. 리스크 노트</h2>
+
+<ul>
+  <li><b>변동성 극단</b> &mdash; 최근 10거래일 중 일간 등락 5% 초과가 4일, 장중 범위 7% 초과가 5일.
+      07/31은 <b>+29.95%</b> 단일 상승. 일반적 손절 전략이 작동하지 않는 환경입니다.</li>
+  <li><b>매물대 압박</b> &mdash; 1,768,000~2,334,000원에 3개월 거래량의 약 35%. 반등 시 저항이 계단식으로 누적됩니다.</li>
+  <li><b>반등 거래량 부족</b> &mdash; 08/13 거래량이 20일 평균의 44%(장중 진행 기준). 마감까지 430만주 내외 예상으로 여전히 평균 미달.</li>
+  <li><b>일봉 일목 0/5</b> &mdash; 5개 조건 전부 약세. 구름 회복까지 +29% 상승 필요.</li>
+  <li><b>쿠모 트위스트 예고</b> &mdash; 26일 후 구름 적색 전환으로 중기 저항 강화.</li>
+</ul>
+
+<h2>12. 논지 무효화 조건 (Thesis Invalidation)</h2>
+
+<p>현재 신호가 <b>중립(NEUTRAL)</b>이므로 양방향 전환 조건을 모두 제시합니다.</p>
+
+<h3 style="font-size:14px;margin:20px 0 8px;">강세로 전환되는 조건 (매수 전환)</h3>
+<ul>
+  <li>일봉 종가 <b>1,718,000원</b> 돌파 + 거래량 20일 평균(5,702,108주) 초과 &rarr; 이중바닥 완성, 목표 2,190,000원</li>
+  <li>MA30(1,796,233)과 일목 기준선(1,787,500) 동시 회복</li>
+  <li>주봉 MACD 히스토그램 양전환 + 주봉 +DI &gt; -DI 역전 &rarr; MTF 2/3 달성</li>
+  <li>외국인 소진율 51.5% 이상 회복</li>
+</ul>
+
+<h3 style="font-size:14px;margin:20px 0 8px;">약세로 전환되는 조건 (매도/회피 전환)</h3>
+<ul>
+  <li>일봉 종가 <b>1,536,167원</b>(VAL + 피보 38.2% 합류) 이탈 &rarr; 1,426,000 &rarr; 1,246,000 경로 개방</li>
+  <li>1,373,000원 종가 이탈 &rarr; 이중바닥 무효, 신저점 시도</li>
+  <li>MA120(1,603,675) 및 MA200(1,223,835) 순차 이탈 &rarr; 장기 강세 레짐 종료</li>
+  <li>MA50 &lt; MA200 정통 데드크로스 발생 (현재 격차상 임박하지 않음)</li>
+</ul>
+
+<h3 style="font-size:14px;margin:20px 0 8px;">재분석 트리거</h3>
+<ul>
+  <li>다음 실적 발표 (3분기)</li>
+  <li>현재가 &plusmn;15% 이동 (1,372,000원 이하 또는 1,856,000원 이상)</li>
+  <li><b>1,718,000원 또는 1,536,000원 종가 돌파/이탈 &mdash; 가장 임박</b></li>
+  <li>60일 경과 (2026-10-12)</li>
+  <li>재료 이벤트: HBM 공급계약, 빅테크 캐펙스 가이던스, 메모리 가격 동향, 경쟁사 실적</li>
+</ul>
+
+<h2>13. 최종 투자 신호</h2>
+
+<div class="verdict">
+  <h3>NEUTRAL (중립) &mdash; 5.0 / 10</h3>
+  <table>
+    <tr><td>신호</td><td><b>NEUTRAL (중립)</b></td></tr>
+    <tr><td>신뢰도</td><td><b>MEDIUM</b> (신호 상충)</td></tr>
+    <tr><td>기간</td><td><b>SHORT-TERM</b> (1주~3개월)</td></tr>
+    <tr><td>점수</td><td><b>5.0 / 10</b></td></tr>
+    <tr><td>액션</td><td><b>HOLD (보유/관망)</b></td></tr>
+    <tr><td>확신도</td><td><b>MODERATE</b></td></tr>
+  </table>
+</div>
+
+<table>
+  <thead><tr><th>강세 요인 (+)</th><th>약세 요인 (&minus;)</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>
+        월봉 ADX 64 극강 상승추세<br>
+        MA200 대비 +31.9%<br>
+        MA200 레짐 300일 무이탈<br>
+        고점상승 저점(higher low) 형성<br>
+        MACD·Stoch·RSI 3중 상향 반전<br>
+        도지 &rarr; 양봉 반전 시퀀스<br>
+        250일 +525.6%
+      </td>
+      <td>
+        8일 전 단기 데드크로스<br>
+        일봉 일목 0/5<br>
+        -DI 33.1 &gt; +DI 21.5<br>
+        주봉 MACD·DI 약세 전환<br>
+        OBV 하락 (분산)<br>
+        반등 거래량 부족<br>
+        위쪽 매물대 35% / ATR 11.2%
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<p><b>결론</b>: MTF 1/3 상충으로 신규 진입 금지.
+<b>1,536,000원과 1,718,000원 중 어느 쪽이 먼저 깨지는지가 다음 방향을 결정합니다.</b></p>
+
+<h2>출처</h2>
+<ul class="src">
+  <li>시세 데이터: Naver Finance 시세 API (000660, 일/주/월봉, 2026-08-13 12:46 KST 조회)</li>
+  <li><a href="https://alphasquare.co.kr/home/stock-summary?code=000660">SK하이닉스 주가 실시간 차트 &mdash; 알파스퀘어</a></li>
+  <li><a href="https://v.daum.net/v/3J0XZ1ZvRt">"올해는 어렵습니다" SK하이닉스 주가, 200만 원 고지 다시 보기 어려운 결정적 변수 &mdash; 노머니</a></li>
+  <li><a href="https://www.youtube.com/watch?v=vABez4bytk4">SK하이닉스 10% 급락 마감, 전문가들 "HBM 치명적 악재 떴다" (2026년 8월 6일)</a></li>
+  <li><a href="https://arca.live/b/stock/179322845">8월 3일~8월 7일 SK하이닉스 주가 논의</a></li>
+  <li><a href="https://en.wikipedia.org/wiki/SK_Hynix">SK Hynix &mdash; Wikipedia</a></li>
+</ul>
+
+<div class="note warn">
+  본 분석은 기술적 지표에 근거한 정보 제공이며 투자 권유가 아닙니다.
+  08-13 봉은 장중 미완성 데이터이므로 마감 후 재확인이 필요합니다.
+</div>
+
+  </div>
+  <div class="footer">
+    본 리포트는 AI가 생성한 정보 제공용 자료이며 투자 자문이 아닙니다. 투자 결정 전에 반드시 별도로 검증하시기 바랍니다.
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+  (function () {
+    var chartData = {"labels": ["05-12", "05-13", "05-14", "05-15", "05-18", "05-19", "05-20", "05-21", "05-22", "05-26", "05-27", "05-28", "05-29", "06-01", "06-02", "06-04", "06-05", "06-08", "06-09", "06-10", "06-11", "06-12", "06-15", "06-16", "06-17", "06-18", "06-19", "06-22", "06-23", "06-24", "06-25", "06-26", "06-29", "06-30", "07-01", "07-02", "07-03", "07-06", "07-07", "07-08", "07-09", "07-10", "07-13", "07-14", "07-15", "07-16", "07-20", "07-21", "07-22", "07-23", "07-24", "07-27", "07-28", "07-29", "07-30", "07-31", "08-03", "08-04", "08-05", "08-06", "08-07", "08-10", "08-11", "08-12", "08-13"], "price": [1835000.0, 1976000.0, 1970000.0, 1819000.0, 1840000.0, 1745000.0, 1745000.0, 1940000.0, 1941000.0, 2052000.0, 2243000.0, 2289000.0, 2333000.0, 2363000.0, 2360000.0, 2298000.0, 2070000.0, 1911000.0, 2215000.0, 2048000.0, 2101000.0, 2150000.0, 2288000.0, 2382000.0, 2521000.0, 2685000.0, 2764000.0, 2919000.0, 2555000.0, 2580000.0, 2917000.0, 2673000.0, 2628000.0, 2650000.0, 2560000.0, 2187000.0, 2425000.0, 2343000.0, 2201000.0, 2076000.0, 2186000.0, 2180000.0, 1845000.0, 1913000.0, 2082000.0, 1842000.0, 1764000.0, 1836000.0, 1830000.0, 1919000.0, 1759000.0, 1816000.0, 1550000.0, 1401000.0, 1322000.0, 1718000.0, 1567000.0, 1577000.0, 1668000.0, 1495000.0, 1422000.0, 1420000.0, 1425000.0, 1504000.0, 1614000.0], "ma20": [1344800.0, 1391600.0, 1434950.0, 1469100.0, 1503350.0, 1534200.0, 1563150.0, 1598950.0, 1634850.0, 1676200.0, 1727250.0, 1777100.0, 1828750.0, 1882250.0, 1935950.0, 1978500.0, 2001950.0, 2014800.0, 2041250.0, 2049650.0, 2062950.0, 2071650.0, 2087550.0, 2115700.0, 2149750.0, 2196750.0, 2247700.0, 2296650.0, 2327350.0, 2353750.0, 2387450.0, 2406650.0, 2421400.0, 2435750.0, 2445750.0, 2440200.0, 2457950.0, 2479550.0, 2478850.0, 2480250.0, 2484500.0, 2486000.0, 2463850.0, 2440400.0, 2418450.0, 2376300.0, 2326300.0, 2272150.0, 2235900.0, 2202850.0, 2144950.0, 2102100.0, 2048200.0, 1985750.0, 1923850.0, 1900400.0, 1857500.0, 1819200.0, 1792550.0, 1763500.0, 1725300.0, 1687300.0, 1666300.0, 1645850.0, 1622450.0]};
+    var ctx = document.getElementById('priceChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: chartData.labels,
+        datasets: [
+          {
+            label: '종가',
+            data: chartData.price,
+            borderColor: '#2563eb',
+            backgroundColor: 'rgba(37, 99, 235, 0.08)',
+            borderWidth: 2,
+            pointRadius: 0,
+            tension: 0.15,
+            fill: true
+          },
+          {
+            label: 'MA20',
+            data: chartData.ma20,
+            borderColor: '#f59e0b',
+            borderWidth: 1.5,
+            pointRadius: 0,
+            borderDash: [4, 3],
+            spanGaps: true
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'top', labels: { boxWidth: 10, font: { size: 11 } } }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+          y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } } }
+        }
+      }
+    });
+  })();
+  </script>
+</body>
+</html>
