@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "timeframe": "1d",
+  "horizon": "1-3 months",
+  "pages_base_url": "https://21dec.github.io/ai-stock-analysis/",
+  "stocks": [
+    {"ticker": "000660", "exchange": "KRX", "currency": "KRW", "display_name": "SK하이닉스", "enabled": true},
+    {"ticker": "005930", "exchange": "KRX", "currency": "KRW", "display_name": "삼성전자", "enabled": true},
+    {"ticker": "035420", "exchange": "KRX", "currency": "KRW", "display_name": "네이버", "enabled": true},
+    {"ticker": "035720", "exchange": "KRX", "currency": "KRW", "display_name": "카카오", "enabled": true},
+    {"ticker": "AAPL", "exchange": "NASDAQ", "currency": "USD", "display_name": "애플", "enabled": true},
+    {"ticker": "AMZN", "exchange": "NASDAQ", "currency": "USD", "display_name": "아마존", "enabled": true},
+    {"ticker": "MSFT", "exchange": "NASDAQ", "currency": "USD", "display_name": "마이크로소프트", "enabled": true},
+    {"ticker": "NFLX", "exchange": "NASDAQ", "currency": "USD", "display_name": "넷플릭스", "enabled": true},
+    {"ticker": "BE", "exchange": "NYSE", "currency": "USD", "display_name": "블룸에너지", "enabled": true},
+    {"ticker": "SPOT", "exchange": "NYSE", "currency": "USD", "display_name": "스포티파이", "enabled": true}
+  ]
+}

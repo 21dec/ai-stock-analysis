@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}시스템 상태{% endblock %}
+
+{% block content %}
+<header class="page-heading system-heading">
+  <p class="eyebrow">로컬 운영 상태</p>
+  <h1>시스템 상태</h1>
+  <p>분석 파일, PostgreSQL 인덱스와 자동 동기화 상태를 읽기 전용으로 확인합니다.</p>
+</header>
+
+<section class="system-summary" aria-label="시스템 요약">
+  <article><span>데이터베이스</span><strong class="status-good">{{ database_status }}</strong><small>로컬 PostgreSQL</small></article>
+  <article><span>자동 동기화</span><strong class="status-{{ sync.state }}">{{ sync_state_label }}</strong><small>{{ sync.interval_seconds }}초 간격</small></article>
+  <article><span>인덱싱된 분석</span><strong>{{ stats.total_runs }}</strong><small>{{ stats.total_stocks }}개 종목</small></article>
+  <article><span>인덱싱 오류</span><strong class="{% if stats.index_errors %}status-error{% else %}status-good{% endif %}">{{ stats.index_errors }}</strong><small>{% if stats.index_errors %}확인 필요{% else %}정상{% endif %}</small></article>
+</section>
+
+<section class="system-panel">
+  <div class="section-heading"><div><p class="eyebrow">증분 동기화</p><h2>최근 실행</h2></div><p aria-live="polite">{{ sync_state_label }}</p></div>
+  <dl class="sync-timeline">
+    <div><dt>마지막 시작</dt><dd>{{ last_started_at }}</dd></div>
+    <div><dt>마지막 완료</dt><dd>{{ last_completed_at }}</dd></div>
+    <div><dt>다음 예정</dt><dd>{{ next_sync_at }}</dd></div>
+    <div><dt>최근 인덱싱</dt><dd>{{ latest_indexed_at }}</dd></div>
+  </dl>
+  <div class="sync-result" aria-label="마지막 동기화 결과">
+    <span>스캔 <b>{{ sync.last_result.scanned }}</b></span>
+    <span>추가 <b>{{ sync.last_result.inserted }}</b></span>
+    <span>갱신 <b>{{ sync.last_result.updated }}</b></span>
+    <span>유지 <b>{{ sync.last_result.unchanged }}</b></span>
+    <span>제거 <b>{{ sync.last_result.removed }}</b></span>
+    <span>오류 <b>{{ sync.last_result.invalid }}</b></span>
+  </div>
+  {% if sync.last_error %}<div class="notice" role="alert"><p>최근 동기화 오류 · {{ sync.last_error }}</p></div>{% endif %}
+  <p class="system-path"><span>분석 파일 위치</span><code>{{ artifacts_root }}</code></p>
+</section>
+
+<section class="system-panel">
+  <div class="section-heading"><div><p class="eyebrow">검증 실패 기록</p><h2>인덱싱 오류</h2></div><p>{{ errors | length }}건</p></div>
+  {% if errors %}
+  <ol class="index-error-list">
+    {% for error in errors %}
+    <li>
+      <div><span>{{ error.error_label }}</span><strong>{{ error.artifact_path }}</strong><small>{{ error.recorded_at }}</small></div>
+      <p>{{ error.message }}</p>
+    </li>
+    {% endfor %}
+  </ol>
+  {% else %}
+  <div class="system-ok"><span aria-hidden="true">✓</span><div><h3>인덱싱 오류가 없습니다.</h3><p>현재 발견된 모든 분석 파일이 검증을 통과했습니다.</p></div></div>
+  {% endif %}
+</section>
+{% endblock %}

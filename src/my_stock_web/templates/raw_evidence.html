@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}{{ ticker }} 원본 데이터{% endblock %}
+
+{% block content %}
+<header class="raw-heading">
+  <a class="back-link" href="{{ url_for('analysis_detail', run_id=run_id) }}">← 분석 상세</a>
+  <p class="eyebrow">인덱싱된 분석 근거</p>
+  <h1>원본 데이터</h1>
+  <p>{{ run_id }} · 포스트그레SQL에 검증·인덱싱된 분석 근거의 읽기 전용 표현입니다.</p>
+</header>
+<section class="raw-document" aria-label="분석 근거 원문">
+  <pre>{{ json_text }}</pre>
+</section>
+{% endblock %}

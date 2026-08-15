@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% block title %}{{ analysis.display_name }} · {{ analysis.as_of_date }}{% endblock %}
+
+{% block content %}
+<header class="detail-heading">
+  <a class="back-link" href="{{ url_for('analyses') }}">← 분석 이력</a>
+  <div class="detail-title-row">
+    <div>
+      <p class="eyebrow">검증된 분석 · {{ analysis.exchange_label }}</p>
+      <h1>{{ analysis.display_name }}</h1>
+      <p>{{ analysis.as_of_date }} {{ analysis.as_of_time }} · {{ analysis.timeframe_label }} · {{ analysis.horizon_label }}</p>
+    </div>
+    <div class="detail-actions">
+      <a class="primary-action" href="{{ url_for('stock_timeline', exchange=analysis.exchange, ticker=analysis.ticker) }}">종목 연대기 {{ timeline_count }}건 →</a>
+      <a href="{{ url_for('compare_stock_runs', exchange=analysis.exchange, ticker=analysis.ticker).include_query_params(after=analysis.run_id) }}">분석 비교 ↗</a>
+      <a href="{{ url_for('evidence_artifact', run_id=analysis.run_id) }}" target="_blank" rel="noreferrer">원본 데이터 ↗</a>
+      {% if analysis.report_available %}<a href="{{ url_for('report', run_id=analysis.run_id) }}" target="_blank" rel="noreferrer">웹 보고서 ↗</a>{% endif %}
+    </div>
+  </div>
+  <dl class="detail-meta" aria-label="분석 실행 정보">
+    <div><dt>검토</dt><dd><span class="review-badge">{{ analysis.review_verdict_label }}</span></dd></div>
+    <div><dt>주문</dt><dd>{% if analysis.order_action == 'none' %}주문 없음{% else %}{{ analysis.order_action }}{% endif %}</dd></div>
+    <div><dt>근거</dt><dd>{{ analysis.claim_count }}개 주장 · {{ analysis.source_count }}개 출처</dd></div>
+    <div><dt>통화</dt><dd>{{ analysis.currency_label }}</dd></div>
+    <div><dt>실행 ID</dt><dd class="mono-value">{{ analysis.run_id }}</dd></div>
+  </dl>
+</header>
+
+<nav class="detail-jump" aria-label="상세 섹션">
+  {% if analysis.analyst_report %}<a href="#briefing">종합 의견</a>{% endif %}
+  <a href="#scenarios">시나리오</a>
+  <a href="#claims">주장</a>
+  <a href="#sources">출처</a>
+  <a href="#caveats">충돌·한계</a>
+</nav>
+
+{% if analysis.analyst_report %}
+{% set report = analysis.analyst_report %}
+<section id="briefing" class="detail-section analyst-section">
+  <div class="section-heading analyst-heading">
+    <div><p class="eyebrow">수석 애널리스트 브리핑</p><h2>종합 의견</h2></div>
+    <p>독립 분석 결과를 하나의 판단 체계로 정리했습니다.</p>
+  </div>
+
+  <article class="analyst-memo">
+    <header class="analyst-memo-head">
+      <div class="analyst-verdict">
+        <span class="analyst-stance stance-{{ report.stance }}">현재 판단 · {{ report.stance_label }}</span>
+        <span>확신 수준 · {{ report.confidence_label }}</span>
+      </div>
+      <h3>{{ report.headline }}</h3>
+      <p>{{ report.summary }}</p>
+    </header>
+
+    <div class="analyst-key-points" aria-label="핵심 투자 논지">
+      {% for point in report.key_points %}
+      <section>
+        <span>{{ "%02d" | format(loop.index) }}</span>
+        <h4>{{ point.title }}</h4>
+        <p>{{ point.assessment }}</p>
+        <div class="analyst-refs">근거 {% for claim_id in point.claim_ids %}<a href="#claim-{{ claim_id }}">{{ claim_id }}</a>{% endfor %}</div>
+      </section>
+      {% endfor %}
+    </div>
+  </article>
+
+  <div class="analyst-subsection">
+    <div class="analyst-subheading"><h3>관점별 종합</h3><p>각 분석이 최종 판단에 미친 영향입니다.</p></div>
+    <div class="perspective-grid">
+      {% for perspective in report.perspectives %}
+      <article class="perspective-card impact-{{ perspective.impact }}">
+        <header><h4>{{ perspective.label }}</h4><span>{{ perspective.impact_label }}</span></header>
+        <p>{{ perspective.conclusion }}</p>
+        <div class="analyst-refs">근거 {% for claim_id in perspective.claim_ids %}<a href="#claim-{{ claim_id }}">{{ claim_id }}</a>{% endfor %}</div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="analyst-subsection monitoring-section">
+    <div class="analyst-subheading"><h3>판단을 바꿀 신호</h3><p>다음 분석에서 가장 먼저 확인할 항목입니다.</p></div>
+    <ol class="monitoring-ledger">
+      {% for point in report.monitoring_points %}
+      <li>
+        <span>{{ "%02d" | format(loop.index) }}</span>
+        <div><h4>{{ point.signal }}</h4><p>{{ point.interpretation }}</p></div>
+        <div class="analyst-refs">근거 {% for claim_id in point.claim_ids %}<a href="#claim-{{ claim_id }}">{{ claim_id }}</a>{% endfor %}</div>
+      </li>
+      {% endfor %}
+    </ol>
+  </div>
+
+  <aside class="analyst-final">
+    <span>최종 판단</span>
+    <p>{{ report.final_assessment }}</p>
+    <div class="analyst-refs">근거 {% for claim_id in report.final_claim_ids %}<a href="#claim-{{ claim_id }}">{{ claim_id }}</a>{% endfor %}</div>
+  </aside>
+</section>
+{% endif %}
+
+<section id="scenarios" class="detail-section scenario-section">
+  <div class="section-heading">
+    <div><p class="eyebrow">조건별 전망</p><h2>조건별 시나리오</h2></div>
+    <p>예측값이 아니라 관찰 조건과 무효화 기준입니다.</p>
+  </div>
+  <div class="scenario-ledger">
+    {% for scenario in analysis.scenarios %}
+    <article class="scenario-column scenario-{{ scenario.name }}">
+      <header><span>{{ "%02d" | format(loop.index) }}</span><h3>{{ scenario.label }}</h3><small>{{ scenario.label }} 시나리오</small></header>
+      <p class="scenario-thesis">{{ scenario.thesis }}</p>
+      <div class="scenario-block">
+        <h4>관찰 조건</h4>
+        <ol>{% for trigger in scenario.triggers %}<li>{{ trigger }}</li>{% endfor %}</ol>
+      </div>
+      <div class="scenario-block invalidation">
+        <h4>무효화</h4>
+        <p>{{ scenario.invalidation }}</p>
+      </div>
+      <div class="scenario-claims">
+        <span>근거 주장</span>
+        {% for claim_id in scenario.claim_ids %}<a href="#claim-{{ claim_id }}">{{ claim_id }}</a>{% endfor %}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section id="claims" class="detail-section evidence-section">
+  <div class="section-heading">
+    <div><p class="eyebrow">근거 부록</p><h2>주장과 근거</h2></div>
+    <p>종합 의견을 구성한 원자료와 출처 연결입니다.</p>
+  </div>
+  {% for lane in analysis.lanes %}
+  <section class="lane-section" aria-labelledby="lane-{{ lane.name }}">
+    <header class="lane-heading">
+      <div><span>{{ "%02d" | format(loop.index) }}</span><h3 id="lane-{{ lane.name }}">{{ lane.label }}</h3></div>
+      <p><b class="lane-status status-{{ lane.status }}">{{ lane.status_label }}</b> · 주장 {{ lane.claims | length }}개</p>
+    </header>
+    {% if lane.reason %}<p class="lane-reason">{{ lane.reason }}</p>{% endif %}
+    {% if lane.claims %}
+    <div class="claim-ledger">
+      {% for claim in lane.claims %}
+      <article id="claim-{{ claim.claim_id }}" class="claim-row">
+        <div class="claim-key"><strong>{{ claim.claim_id }}</strong><span>{{ claim.kind_label }} · 신뢰도 {{ claim.confidence }}</span></div>
+        <p>{{ claim.text }}</p>
+        <div class="claim-source-links">
+          {% for source in claim.sources %}<a href="#source-{{ source.source_id }}">[{{ source.source_id }}]</a>{% else %}<span>연결 출처 없음</span>{% endfor %}
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="lane-empty">이 분석 영역은 이번 분석 범위에서 생략됐습니다.</p>
+    {% endif %}
+  </section>
+  {% endfor %}
+</section>
+
+<section id="sources" class="detail-section source-section">
+  <div class="section-heading">
+    <div><p class="eyebrow">근거 자료</p><h2>출처 목록</h2></div>
+    <p>외부 링크는 새 탭에서 열립니다.</p>
+  </div>
+  <ol class="source-register">
+    {% for source in analysis.sources %}
+    <li id="source-{{ source.source_id }}">
+      <div class="source-key"><span>{{ "%02d" | format(loop.index) }}</span><strong>{{ source.source_id }}</strong></div>
+      <div class="source-copy">
+        <h3>{{ source.title }}</h3>
+        <p>{{ source.source_type }} · 게시 {{ source.published_at }} · 수집 {{ source.retrieved_at }}</p>
+        <p class="source-claims">연결 주장 · {% for claim_id in source.claim_ids %}<a href="#claim-{{ claim_id }}">{{ claim_id }}</a>{% else %}없음{% endfor %}</p>
+      </div>
+      {% if source.url %}<a class="source-out" href="{{ source.url }}" target="_blank" rel="noopener noreferrer nofollow">원문 ↗</a>{% else %}<span class="source-blocked">링크 제한</span>{% endif %}
+    </li>
+    {% endfor %}
+  </ol>
+</section>
+
+<section id="caveats" class="detail-section caveat-section">
+  <div class="section-heading">
+    <div><p class="eyebrow">반대 근거와 공백</p><h2>충돌과 한계</h2></div>
+    <p>결론과 함께 보존해야 하는 반대 근거와 공백입니다.</p>
+  </div>
+  <div class="caveat-ledger">
+    <section>
+      <h3>충돌하는 증거 <span>{{ analysis.conflicts | length }}</span></h3>
+      <ol>{% for item in analysis.conflicts %}<li>{{ item }}</li>{% else %}<li>기록된 충돌이 없습니다.</li>{% endfor %}</ol>
+    </section>
+    <section>
+      <h3>분석의 한계 <span>{{ analysis.limitations | length }}</span></h3>
+      <ol>{% for item in analysis.limitations %}<li>{{ item }}</li>{% else %}<li>기록된 한계가 없습니다.</li>{% endfor %}</ol>
+    </section>
+  </div>
+  <p class="review-note">최종 검토 {{ analysis.reviewed_at }} · 이 화면은 읽기 전용이며 주문을 생성하지 않습니다.</p>
+</section>
+{% endblock %}

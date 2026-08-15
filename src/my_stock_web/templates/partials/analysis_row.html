@@ -1,0 +1,26 @@
+<article class="analysis-row">
+  <div class="record-identity">
+    <span class="record-date">{{ analysis.as_of_date }}<small>{{ analysis.as_of_time }}</small></span>
+    <div>
+      <h3>{{ analysis.display_name }}</h3>
+      <p>{{ analysis.exchange_label }} · {{ analysis.run_id }}</p>
+    </div>
+  </div>
+  <dl class="record-scope">
+    <div><dt>주기</dt><dd>{{ analysis.timeframe_label }}</dd></div>
+    <div><dt>전망</dt><dd>{{ analysis.horizon_label }}</dd></div>
+  </dl>
+  <dl class="record-evidence">
+    <div><dt>출처</dt><dd>{{ analysis.source_count }}</dd></div>
+    <div><dt>주장</dt><dd>{{ analysis.claim_count }}</dd></div>
+  </dl>
+  <div class="record-action">
+    <span class="review-badge">{{ analysis.review_verdict_label }}</span>
+    <a href="{{ url_for('analysis_detail', run_id=analysis.run_id) }}">상세 보기 <span aria-hidden="true">→</span></a>
+    {% if analysis.report_available %}
+      <a class="secondary-record-link" href="{{ url_for('report', run_id=analysis.run_id) }}" target="_blank" rel="noreferrer" aria-label="{{ analysis.display_name }} 웹 보고서 열기">보고서 ↗</a>
+    {% else %}
+      <span class="report-missing">보고서 없음</span>
+    {% endif %}
+  </div>
+</article>

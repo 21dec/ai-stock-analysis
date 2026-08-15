@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=80"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "my-stock"
+version = "0.1.0"
+description = "Local evidence-backed stock analysis history"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "alembic>=1.18,<2",
+  "fastapi>=0.116,<1",
+  "jinja2>=3.1,<4",
+  "psycopg[binary]>=3.3,<4",
+  "sqlalchemy>=2.0.51,<2.1",
+  "uvicorn>=0.35,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "httpx2>=2.9,<3",
+  "ruff>=0.12,<1",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W"]

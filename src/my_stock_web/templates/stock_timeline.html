@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}{{ display_name }} 분석 연대기{% endblock %}
+
+{% block content %}
+<header class="page-heading timeline-heading">
+  <p class="eyebrow">종목별 분석 흐름 · {{ exchange_label }}</p>
+  <h1>{{ display_name }} 분석 연대기</h1>
+  <p>{{ first_date }}부터 {{ latest_date }}까지 코덱스가 생성한 {{ runs | length }}개의 검증된 분석입니다.</p>
+</header>
+
+<section class="ledger-section timeline-section">
+  <div class="section-heading">
+    <div><p class="eyebrow">최신순</p><h2>{{ runs | length }}개의 기록</h2></div>
+    <div class="section-actions"><a href="{{ url_for('compare_stock_runs', exchange=exchange, ticker=ticker) }}">두 분석 비교 →</a><a href="{{ filtered_history_url }}">필터된 이력 보기 →</a></div>
+  </div>
+  <div class="analysis-ledger">
+    <div class="ledger-columns" aria-hidden="true"><span>분석 실행</span><span>범위</span><span>근거</span><span>상태</span></div>
+    {% for analysis in runs %}{% include "partials/analysis_row.html" %}{% endfor %}
+  </div>
+</section>
+{% endblock %}

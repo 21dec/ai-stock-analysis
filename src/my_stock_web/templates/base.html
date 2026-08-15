@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="코덱스가 생성한 주식 분석 이력을 탐색하는 로컬 리서치 보관함">
+  <title>{% block title %}분석 기록{% endblock %} · 나의 주식 분석</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
+</head>
+<body>
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+  <header class="site-header">
+    <a class="wordmark" href="{{ url_for('dashboard') }}" aria-label="분석 기록 홈">
+      <span class="wordmark-mark">주식</span>
+      <span><b>나의 주식 분석</b><small>읽기 전용 보관함</small></span>
+    </a>
+    <nav aria-label="주요 메뉴">
+      <a href="{{ url_for('dashboard') }}" {% if request.url.path == '/' %}aria-current="page"{% endif %}>홈</a>
+      <a href="{{ url_for('analyses') }}" {% if request.url.path.startswith('/analyses') or request.url.path.startswith('/stocks') %}aria-current="page"{% endif %}>분석 이력</a>
+      <a href="{{ url_for('system_status') }}" {% if request.url.path == '/system' %}aria-current="page"{% endif %}>시스템</a>
+    </nav>
+    <div class="local-status"><i aria-hidden="true"></i> 로컬 · 읽기 전용</div>
+  </header>
+
+  <main id="content" class="page-shell">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <span>검증된 분석 근거를 읽는 로컬 전용 제품</span>
+    <span>로컬 데이터베이스 인덱스 · 주문 실행 없음</span>
+  </footer>
+</body>
+</html>

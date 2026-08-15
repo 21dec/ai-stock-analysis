@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}분석 이력{% endblock %}
+
+{% block content %}
+<header class="page-heading">
+  <p class="eyebrow">분석 기록 검색</p>
+  <h1>분석 이력</h1>
+  <p>종목, 시장, 분석 주기와 기준일로 코덱스가 생성한 기록을 찾습니다.</p>
+</header>
+
+<form class="filter-panel" action="{{ url_for('analyses') }}" method="get" role="search">
+  <div class="filter-query">
+    <label for="q">티커 또는 실행 ID</label>
+    <input id="q" name="q" type="search" value="{{ filters.q }}" placeholder="000660 또는 실행 ID" autocomplete="off">
+  </div>
+  <div>
+    <label for="exchange">거래소</label>
+    <select id="exchange" name="exchange">
+      <option value="">전체</option>
+      {% for value, label in options.exchanges %}<option value="{{ value }}" {% if filters.exchange == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="timeframe">주기</label>
+    <select id="timeframe" name="timeframe">
+      <option value="">전체</option>
+      {% for value, label in options.timeframes %}<option value="{{ value }}" {% if filters.timeframe == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="horizon">전망</label>
+    <select id="horizon" name="horizon">
+      <option value="">전체</option>
+      {% for value, label in options.horizons %}<option value="{{ value }}" {% if filters.horizon == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="date_from">시작일</label>
+    <input id="date_from" name="date_from" type="date" value="{{ filters.date_from }}">
+  </div>
+  <div>
+    <label for="date_to">종료일</label>
+    <input id="date_to" name="date_to" type="date" value="{{ filters.date_to }}">
+  </div>
+  <div class="filter-actions">
+    <button type="submit">필터 적용</button>
+    <a href="{{ url_for('analyses') }}">초기화</a>
+  </div>
+</form>
+
+{% if filter_errors %}
+<div class="notice error-notice" role="status">
+  {% for error in filter_errors %}<p>{{ error }}</p>{% endfor %}
+</div>
+{% endif %}
+
+<section class="ledger-section history-results">
+  <div class="section-heading">
+    <div><p class="eyebrow">검색 결과</p><h2>{{ total }}개의 분석</h2></div>
+    {% if total %}<p>{{ page }} / {{ total_pages }} 페이지</p>{% endif %}
+  </div>
+
+  {% if analyses %}
+  <div class="analysis-ledger">
+    <div class="ledger-columns" aria-hidden="true"><span>분석 실행</span><span>범위</span><span>근거</span><span>상태</span></div>
+    {% for analysis in analyses %}
+      {% include "partials/analysis_row.html" %}
+    {% endfor %}
+  </div>
+  <nav class="pagination" aria-label="분석 이력 페이지">
+    {% if previous_url %}<a href="{{ previous_url }}">← 이전</a>{% else %}<span>← 이전</span>{% endif %}
+    <strong>{{ page }} / {{ total_pages }}</strong>
+    {% if next_url %}<a href="{{ next_url }}">다음 →</a>{% else %}<span>다음 →</span>{% endif %}
+  </nav>
+  {% else %}
+  <div class="empty-state compact">
+    <p class="empty-code">일치하는 분석 없음</p>
+    <h2>조건에 맞는 분석이 없습니다.</h2>
+    <p>티커나 기간을 줄이거나 필터를 초기화해 보세요.</p>
+    <a class="text-action" href="{{ url_for('analyses') }}">전체 분석 보기 →</a>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

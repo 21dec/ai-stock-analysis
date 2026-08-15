@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}{{ display_name }} 분석 비교{% endblock %}
+
+{% block content %}
+<header class="page-heading comparison-heading">
+  <p class="eyebrow">동일 종목 판단 변화 · {{ exchange_label }}</p>
+  <h1>{{ display_name }} 분석 비교</h1>
+  <p>두 시점의 애널리스트 판단, 시나리오와 근거 변화를 나란히 확인합니다.</p>
+</header>
+
+<form class="comparison-picker" method="get" aria-label="비교할 분석 선택">
+  <div>
+    <label for="comparison-before">이전 분석</label>
+    <select id="comparison-before" name="before">
+      {% for run in runs %}<option value="{{ run.run_id }}" {% if run.run_id == selected_before %}selected{% endif %}>{{ run.as_of_date }} · {{ run.run_id }}</option>{% endfor %}
+    </select>
+  </div>
+  <span aria-hidden="true">→</span>
+  <div>
+    <label for="comparison-after">비교 분석</label>
+    <select id="comparison-after" name="after">
+      {% for run in runs %}<option value="{{ run.run_id }}" {% if run.run_id == selected_after %}selected{% endif %}>{{ run.as_of_date }} · {{ run.run_id }}</option>{% endfor %}
+    </select>
+  </div>
+  <button type="submit">비교하기</button>
+</form>
+
+{% if selection_error %}<div class="notice" role="alert"><p>{{ selection_error }}</p></div>{% endif %}
+
+{% if runs | length < 2 %}
+<section class="empty-state compact comparison-empty">
+  <p class="empty-code">비교 기록 부족</p>
+  <h2>두 번째 분석이 필요합니다.</h2>
+  <p>같은 종목의 새 분석이 인덱싱되면 두 시점의 판단과 근거 변화를 비교할 수 있습니다.</p>
+  <a class="text-action" href="{{ url_for('stock_timeline', exchange=exchange, ticker=ticker) }}">분석 연대기로 돌아가기 →</a>
+</section>
+{% elif comparison %}
+<section class="comparison-document" aria-label="분석 비교 결과">
+  <header class="comparison-run-head">
+    <div><span>이전</span><strong>{{ comparison.before.as_of_date }}</strong><small>{{ comparison.before.run_id }}</small><a href="{{ url_for('analysis_detail', run_id=comparison.before.run_id) }}">상세 보기 ↗</a></div>
+    <div><span>비교</span><strong>{{ comparison.after.as_of_date }}</strong><small>{{ comparison.after.run_id }}</small><a href="{{ url_for('analysis_detail', run_id=comparison.after.run_id) }}">상세 보기 ↗</a></div>
+  </header>
+
+  <div class="comparison-metrics">
+    {% for metric in comparison.metrics %}
+    <div><span>{{ metric.label }}</span><strong>{{ metric.before }}</strong><i aria-hidden="true">→</i><strong>{{ metric.after }}</strong><em>{{ metric.change }}</em></div>
+    {% endfor %}
+  </div>
+
+  <section class="comparison-section">
+    <div class="section-heading"><div><p class="eyebrow">판단 변화</p><h2>애널리스트 종합 의견</h2></div><p>두 보고서의 최상위 결론을 비교합니다.</p></div>
+    <div class="analyst-comparison">
+      {% for report, side in [(comparison.before.analyst_report, '이전'), (comparison.after.analyst_report, '비교')] %}
+      <article>
+        <span>{{ side }}</span>
+        {% if report %}
+        <div><b>현재 판단 · {{ report.stance_label }}</b><small>확신 수준 · {{ report.confidence_label }}</small></div>
+        <h3>{{ report.headline }}</h3>
+        <p>{{ report.final_assessment }}</p>
+        {% else %}<h3>종합 의견 없음</h3><p>이 분석은 이전 데이터 계약으로 생성됐습니다.</p>{% endif %}
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="comparison-section">
+    <div class="section-heading"><div><p class="eyebrow">조건 변화</p><h2>시나리오 비교</h2></div><p>문구 변화는 판단 조건이 달라졌음을 뜻합니다.</p></div>
+    <div class="scenario-comparison">
+      {% for scenario in comparison.scenarios %}
+      <article class="scenario-{{ scenario.name }}">
+        <header><h3>{{ scenario.label }}</h3><span>{% if scenario.changed %}변경됨{% else %}유지{% endif %}</span></header>
+        <div><span>이전</span><p>{{ scenario.before }}</p></div>
+        <div><span>비교</span><p>{{ scenario.after }}</p></div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="comparison-section">
+    <div class="section-heading"><div><p class="eyebrow">근거 변화</p><h2>추가·수정·제외된 주장</h2></div><p>같은 주장 ID의 본문 변경도 추적합니다.</p></div>
+    {% if comparison.claim_changes %}
+    <ol class="claim-change-list">
+      {% for claim in comparison.claim_changes %}
+      <li class="change-{{ claim.change_type }}">
+        <div><span>{{ claim.change_label }}</span><strong>{{ claim.claim_id }}</strong></div>
+        {% if claim.before %}<p><b>이전</b>{{ claim.before }}</p>{% endif %}
+        {% if claim.after %}<p><b>비교</b>{{ claim.after }}</p>{% endif %}
+      </li>
+      {% endfor %}
+    </ol>
+    {% else %}<p class="comparison-no-change">원자 주장 본문에는 변화가 없습니다.</p>{% endif %}
+  </section>
+</section>
+{% endif %}
+{% endblock %}

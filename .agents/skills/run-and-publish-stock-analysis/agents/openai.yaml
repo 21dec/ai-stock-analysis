@@ -1,0 +1,4 @@
+interface:
+  display_name: "주식 분석 자동 실행·게시"
+  short_description: "감시 종목 분석부터 GitHub Pages 게시까지 자동화"
+  default_prompt: "$run-and-publish-stock-analysis를 사용해 설정된 감시 종목을 분석하고 검증된 보고서를 GitHub Pages에 게시해 주세요."
