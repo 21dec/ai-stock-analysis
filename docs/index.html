@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="코덱스가 생성한 주식 분석 보고서를 종목과 기준일별로 확인하는 개인 리서치 아카이브">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 rx=%2212%22 fill=%22%23172019%22/><path d=%22M16 43V30h8v13zm12 0V20h8v23zm12 0V12h8v31z%22 fill=%22%23d7ff3f%22/></svg>">
+  <title>나의 주식 리서치 아카이브</title>
+  <style>
+    :root {
+      --paper: #f2efe7;
+      --ink: #172019;
+      --muted: #626961;
+      --line: #c9cdc4;
+      --signal: #d7ff3f;
+      --signal-dark: #506400;
+      --panel: #fbfaf5;
+      --caution: #f0d978;
+      --serif: "Iowan Old Style", "Noto Serif KR", "Batang", serif;
+      --sans: "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, transparent 49.8%, rgba(23,32,25,.035) 50%, transparent 50.2%),
+        var(--paper);
+      font-family: var(--sans);
+      line-height: 1.55;
+    }
+    a { color: inherit; }
+    a:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 3px solid var(--signal-dark);
+      outline-offset: 3px;
+    }
+    .shell { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
+    .topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 22px 0;
+      border-bottom: 1px solid var(--ink);
+      font-size: 13px;
+      letter-spacing: .08em;
+    }
+    .topline strong { text-transform: uppercase; }
+    .topline span { color: var(--muted); }
+    .masthead {
+      display: grid;
+      grid-template-columns: 1.4fr .6fr;
+      gap: 64px;
+      padding: 78px 0 62px;
+      border-bottom: 1px solid var(--ink);
+    }
+    .eyebrow {
+      margin: 0 0 14px;
+      color: var(--signal-dark);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+    }
+    h1 {
+      max-width: 760px;
+      margin: 0;
+      font-family: var(--serif);
+      font-size: clamp(52px, 8vw, 104px);
+      font-weight: 500;
+      letter-spacing: -.065em;
+      line-height: .92;
+    }
+    .masthead-copy {
+      align-self: end;
+      margin: 0;
+      color: var(--muted);
+      font-family: var(--serif);
+      font-size: 19px;
+      line-height: 1.7;
+    }
+    .masthead-copy b { color: var(--ink); font-weight: 600; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-bottom: 1px solid var(--ink);
+    }
+    .stats div { padding: 25px 0; border-right: 1px solid var(--line); }
+    .stats div + div { padding-left: 28px; }
+    .stats div:last-child { border-right: 0; }
+    .stats span { display: block; color: var(--muted); font-size: 12px; }
+    .stats strong { display: block; margin-top: 4px; font-family: var(--serif); font-size: 34px; font-weight: 500; }
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1fr 220px;
+      gap: 12px;
+      margin: 50px 0 28px;
+    }
+    .toolbar label { position: absolute; overflow: hidden; width: 1px; height: 1px; clip: rect(0 0 0 0); }
+    .toolbar input, .toolbar select {
+      width: 100%;
+      border: 1px solid var(--ink);
+      border-radius: 0;
+      background: var(--panel);
+      color: var(--ink);
+      font: inherit;
+      padding: 15px 17px;
+    }
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 24px;
+      margin-bottom: 20px;
+    }
+    h2 { margin: 0; font-family: var(--serif); font-size: clamp(31px, 4vw, 46px); font-weight: 500; letter-spacing: -.035em; }
+    .section-heading p { margin: 0; color: var(--muted); font-size: 13px; }
+    .report-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      border-top: 1px solid var(--ink);
+      border-left: 1px solid var(--ink);
+    }
+    .report-card {
+      position: relative;
+      min-height: 284px;
+      padding: 28px;
+      border-right: 1px solid var(--ink);
+      border-bottom: 1px solid var(--ink);
+      background: rgba(251,250,245,.62);
+      transition: background .2s ease, transform .2s ease;
+    }
+    .report-card:hover { z-index: 1; background: var(--panel); transform: translate(-3px, -3px); box-shadow: 6px 6px 0 var(--ink); }
+    .report-meta { display: flex; justify-content: space-between; gap: 16px; color: var(--muted); font-size: 12px; letter-spacing: .04em; }
+    .stance {
+      display: inline-block;
+      margin-top: 26px;
+      padding: 5px 9px;
+      background: var(--caution);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .stance.constructive { background: var(--signal); }
+    .report-card h3 { margin: 13px 0 8px; font-family: var(--serif); font-size: 31px; font-weight: 500; letter-spacing: -.025em; }
+    .report-card p { margin: 0 0 24px; color: var(--muted); }
+    .report-card > a {
+      position: absolute;
+      right: 28px;
+      bottom: 26px;
+      font-weight: 800;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 5px;
+    }
+    .history { margin: 72px 0 100px; }
+    .history-list { border-top: 1px solid var(--ink); }
+    .history-row {
+      display: grid;
+      grid-template-columns: 1fr 160px 120px 90px;
+      gap: 20px;
+      align-items: center;
+      padding: 22px 4px;
+      border-bottom: 1px solid var(--line);
+    }
+    .history-row strong { font-family: var(--serif); font-size: 22px; font-weight: 500; }
+    .history-row span { color: var(--muted); font-size: 13px; }
+    .history-row a { justify-self: end; font-weight: 800; }
+    .hidden { display: none !important; }
+    .empty { display: none; padding: 44px 0; border-top: 1px solid var(--ink); color: var(--muted); }
+    footer { display: flex; justify-content: space-between; gap: 24px; padding: 24px 0 42px; border-top: 1px solid var(--ink); color: var(--muted); font-size: 12px; }
+
+    @media (max-width: 760px) {
+      .shell { width: min(100% - 24px, 1180px); }
+      .topline span { display: none; }
+      .masthead { grid-template-columns: 1fr; gap: 34px; padding: 52px 0 40px; }
+      .masthead-copy { max-width: 32rem; }
+      .stats { grid-template-columns: 1fr; }
+      .stats div, .stats div + div { padding: 18px 0; border-right: 0; border-bottom: 1px solid var(--line); }
+      .stats div:last-child { border-bottom: 0; }
+      .toolbar { grid-template-columns: 1fr; margin-top: 36px; }
+      .section-heading { align-items: start; flex-direction: column; }
+      .report-grid { grid-template-columns: 1fr; }
+      .report-card { min-height: 260px; }
+      .history-row { grid-template-columns: 1fr auto; }
+      .history-row span:first-of-type { display: none; }
+      .history-row a { grid-column: 2; grid-row: 1 / span 2; }
+      footer { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="topline"><strong>My Stock Research</strong><span>읽기 전용 · 주문 기능 없음</span></div>
+      <section class="masthead">
+        <div><p class="eyebrow">Codex Research Archive</p><h1>나의 주식<br>리서치 아카이브</h1></div>
+        <p class="masthead-copy">기술 분석, 펀더멘털, 뉴스와 반대 관점을 함께 검토한 <b>근거 기반 보고서</b>입니다. 결론보다 판단을 바꿀 조건을 먼저 확인합니다.</p>
+      </section>
+      <section class="stats" aria-label="보고서 요약">
+        <div><span>공개 보고서</span><strong>13</strong></div>
+        <div><span>분석 종목</span><strong>10</strong></div>
+        <div><span>최근 기준일</span><strong>2026.08.14</strong></div>
+      </section>
+    </header>
+
+    <main>
+      <section class="toolbar" aria-label="보고서 찾기">
+        <label for="search">종목명 또는 종목 코드 검색</label>
+        <input id="search" type="search" placeholder="종목명 또는 종목 코드 검색" autocomplete="off">
+        <label for="market">시장 선택</label>
+        <select id="market">
+          <option value="all">전체 시장</option>
+          <option value="KRX">한국거래소</option>
+          <option value="NASDAQ">나스닥</option>
+          <option value="NYSE">뉴욕증권거래소</option>
+        </select>
+      </section>
+
+      <section aria-labelledby="latest-title">
+        <div class="section-heading"><div><p class="eyebrow">Latest Reports</p><h2 id="latest-title">최신 분석</h2></div><p>기준일 2026.08.14 · 관찰 기간 1~3개월</p></div>
+        <div class="report-grid" id="latest-reports">
+          <article class="report-card" data-name="SK하이닉스 000660" data-market="KRX"><div class="report-meta"><span>한국거래소 · 000660</span><time>2026.08.14</time></div><span class="stance">균형 · 보통</span><h3>SK하이닉스</h3><p>실적과 인공지능 메모리 수요는 강하지만 주가 추세 전환은 아직 확인되지 않았다.</p><a href="reports/000660-2026-08-14.html">보고서 읽기 →</a></article>
+          <article class="report-card" data-name="삼성전자 005930" data-market="KRX"><div class="report-meta"><span>한국거래소 · 005930</span><time>2026.08.14</time></div><span class="stance">균형 · 보통</span><h3>삼성전자</h3><p>기록적 반도체 이익은 강하지만 50일선 회복과 이익 다변화 확인이 남았다.</p><a href="reports/005930-2026-08-14.html">보고서 읽기 →</a></article>
+          <article class="report-card" data-name="네이버 NAVER 035420" data-market="KRX"><div class="report-meta"><span>한국거래소 · 035420</span><time>2026.08.14</time></div><span class="stance">균형 · 보통</span><h3>네이버</h3><p>매출과 AI 인프라 기회는 커졌지만 이익률과 200일선 돌파가 다음 검증점이다.</p><a href="reports/035420-2026-08-14.html">보고서 읽기 →</a></article>
+          <article class="report-card" data-name="카카오 KAKAO 035720" data-market="KRX"><div class="report-meta"><span>한국거래소 · 035720</span><time>2026.08.14</time></div><span class="stance">균형 · 보통</span><h3>카카오</h3><p>영업이익 회복은 분명하지만 순이익·법적 위험·중기 추세 확인이 더 필요하다.</p><a href="reports/035720-2026-08-14.html">보고서 읽기 →</a></article>
+          <article class="report-card" data-name="애플 APPLE AAPL" data-market="NASDAQ"><div class="report-meta"><span>나스닥 · AAPL</span><time>2026.08.14</time></div><span class="stance">균형 · 보통</span><h3>애플</h3><p>실적 성장은 견조하지만 단기 과매도 신호만으로 추세 반전을 단정하기 어렵다.</p><a href="reports/AAPL-2026-08-14.html">보고서 읽기 →</a></article>
+          <article class="report-card" data-name="아마존 AMAZON AMZN" data-market="NASDAQ"><div class="report-meta"><span>나스닥 · AMZN</span><time>2026.08.14</time></div><span class="stance constructive">긍정적 · 보통</span><h3>아마존</h3><p>AWS 성장과 가격 추세는 우호적이지만 대규모 투자 부담이 상승 폭을 제한한다.</p><a href="reports/AMZN-2026-08-14.html">보고서 읽기 →</a></article>
+          <article class="report-card" data-name="마이크로소프트 MICROSOFT MSFT" data-market="NASDAQ"><div class="report-meta"><span>나스닥 · MSFT</span><time>2026.08.14</time></div><span class="stance">균형 · 보통</span><h3>마이크로소프트</h3><p>애저와 이익 성장은 탁월하지만 RSI 과열은 추가 가격 확인을 요구한다.</p><a href="reports/MSFT-2026-08-14.html">보고서 읽기 →</a></article>
+          <article class="report-card" data-name="넷플릭스 NETFLIX NFLX" data-market="NASDAQ"><div class="report-meta"><span>나스닥 · NFLX</span><time>2026.08.14</time></div><span class="stance">균형 · 보통</span><h3>넷플릭스</h3><p>실적 성장은 견조하지만 3분기 감속 전망과 단기 과열이 상승 여력을 제한한다.</p><a href="reports/NFLX-2026-08-14.html">보고서 읽기 →</a></article>
+          <article class="report-card" data-name="블룸에너지 BLOOM ENERGY BE" data-market="NYSE"><div class="report-meta"><span>뉴욕증권거래소 · BE</span><time>2026.08.14</time></div><span class="stance">균형 · 보통</span><h3>블룸에너지</h3><p>실적은 급격히 개선됐지만 50일선 회복 전까지는 변동성 관리가 우선이다.</p><a href="reports/BE-2026-08-14.html">보고서 읽기 →</a></article>
+          <article class="report-card" data-name="스포티파이 SPOTIFY SPOT" data-market="NYSE"><div class="report-meta"><span>뉴욕증권거래소 · SPOT</span><time>2026.08.14</time></div><span class="stance constructive">긍정적 · 보통</span><h3>스포티파이</h3><p>이익 체력과 유료 구독자 성장은 강화됐고, 주요 저항 돌파가 다음 확인점이다.</p><a href="reports/SPOT-2026-08-14.html">보고서 읽기 →</a></article>
+        </div>
+        <p class="empty" id="empty-state">조건에 맞는 보고서가 없습니다.</p>
+      </section>
+
+      <section class="history" aria-labelledby="history-title">
+        <div class="section-heading"><div><p class="eyebrow">Earlier Reports</p><h2 id="history-title">이전 기록</h2></div><p>기존 공개 보고서를 함께 보존합니다.</p></div>
+        <div class="history-list">
+          <article class="history-row" data-name="SK하이닉스 000660" data-market="KRX"><strong>SK하이닉스</strong><span>한국거래소 · 000660</span><time>2026.08.13</time><a href="reports/000660-20260813.html">열기 →</a></article>
+          <article class="history-row" data-name="아마존 AMAZON AMZN" data-market="NASDAQ"><strong>아마존</strong><span>나스닥 · AMZN</span><time>2026.08.05</time><a href="reports/AMZN-20260805.html">열기 →</a></article>
+          <article class="history-row" data-name="블룸에너지 BLOOM ENERGY BE" data-market="NYSE"><strong>블룸에너지</strong><span>뉴욕증권거래소 · BE</span><time>2026.08.05</time><a href="reports/BE-20260805.html">열기 →</a></article>
+        </div>
+      </section>
+    </main>
+
+    <footer><span>코덱스 생성 결과만 보관하는 읽기 전용 아카이브</span><span>투자 판단의 책임은 이용자에게 있으며 주문을 생성하지 않습니다.</span></footer>
+  </div>
+
+  <script>
+    const search = document.querySelector('#search');
+    const market = document.querySelector('#market');
+    const reports = [...document.querySelectorAll('[data-name][data-market]')];
+    const empty = document.querySelector('#empty-state');
+
+    function filterReports() {
+      const query = search.value.trim().toLocaleLowerCase('ko');
+      const selectedMarket = market.value;
+      let latestVisible = 0;
+
+      reports.forEach((report) => {
+        const matchesQuery = report.dataset.name.toLocaleLowerCase('ko').includes(query);
+        const matchesMarket = selectedMarket === 'all' || report.dataset.market === selectedMarket;
+        const visible = matchesQuery && matchesMarket;
+        report.classList.toggle('hidden', !visible);
+        if (visible && report.classList.contains('report-card')) latestVisible += 1;
+      });
+
+      empty.style.display = latestVisible ? 'none' : 'block';
+    }
+
+    search.addEventListener('input', filterReports);
+    market.addEventListener('change', filterReports);
+  </script>
+</body>
+</html>
