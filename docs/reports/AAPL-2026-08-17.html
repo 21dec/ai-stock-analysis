@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f3f0e7">
+  <title>AAPL 주식 분석</title>
+  <style>
+    :root {
+      --paper:#f3f0e7; --raised:#faf8f2; --ink:#181a17; --soft:#3f433e;
+      --muted:#6b6f68; --line:#cbc7bb; --strong:#7f827b; --green:#174f3a;
+      --green-pale:#e4ede7; --amber:#765817; --red:#963a31;
+      --display:AppleMyungjo,"Noto Serif KR","Nanum Myeongjo",Georgia,serif;
+      --body:Pretendard,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+      --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; color:var(--ink); background:var(--paper); font-family:var(--body); line-height:1.68; word-break:keep-all; -webkit-font-smoothing:antialiased; }
+    a { color:var(--green); text-underline-offset:3px; }
+    a:focus-visible { outline:3px solid var(--green); outline-offset:3px; }
+    h1,h2,h3,h4,p { margin-top:0; }
+    .page { width:min(1180px,calc(100% - 44px)); margin:0 auto 64px; }
+    .report-brand { min-height:68px; display:flex; justify-content:space-between; gap:20px; align-items:center; border-bottom:1px solid var(--ink); color:var(--muted); font:600 10px/1.3 var(--mono); }
+    .report-brand strong { color:var(--ink); font-family:var(--body); font-size:13px; letter-spacing:-.02em; }
+    .report-head { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:56px; align-items:end; padding:64px 0 46px; border-bottom:1px solid var(--ink); }
+    h1 { margin-bottom:14px; font:600 clamp(58px,9vw,108px)/.88 var(--display); letter-spacing:-.07em; }
+    h2 { margin-bottom:21px; font:600 clamp(31px,4vw,46px)/1.08 var(--display); letter-spacing:-.04em; }
+    h3 { font:600 24px/1.25 var(--display); }
+    h4 { margin:21px 0 8px; font:700 10px/1.3 var(--mono); letter-spacing:.06em; }
+    .eyebrow,.kicker { color:var(--green); font:750 10px/1.3 var(--mono); letter-spacing:.07em; }
+    .meta { padding:20px 0; border-top:2px solid var(--ink); border-bottom:1px solid var(--line); }
+    .meta span { display:block; color:var(--muted); font-size:10px; }
+    .meta strong { display:block; margin:6px 0; font:600 19px/1.3 var(--display); overflow-wrap:anywhere; }
+    section { padding:58px 0; border-bottom:1px solid var(--ink); }
+    .overview { display:grid; grid-template-columns:repeat(3,1fr); border-top:2px solid var(--ink); border-bottom:1px solid var(--line); }
+    .overview div { padding:20px; border-right:1px solid var(--line); }
+    .overview div:last-child { border-right:0; }
+    .overview strong { display:block; font:600 30px/1.1 var(--display); }
+    .overview span { color:var(--muted); font-size:11px; }
+    .lanes,.scenarios { display:grid; grid-template-columns:repeat(3,1fr); border-top:2px solid var(--ink); border-bottom:1px solid var(--line); }
+    .lane,.scenario { min-width:0; padding:23px; border-right:1px solid var(--line); }
+    .lane:last-child,.scenario:last-child { border-right:0; }
+    .lane strong { display:block; margin-top:24px; font:600 34px/1 var(--display); }
+    .lane small { color:var(--muted); }
+    .status,.kind { display:inline-block; padding:2px 6px; border:1px solid currentColor; font:700 9px/1.5 var(--mono); text-transform:uppercase; }
+    .status.complete,.kind.fact { color:var(--green); }
+    .status.omitted,.kind.inference { color:var(--amber); }
+    .scenario { min-height:410px; border-top:5px solid var(--strong); }
+    .scenario.bull { border-top-color:var(--green); }
+    .scenario.base { border-top-color:var(--soft); }
+    .scenario.bear { border-top-color:var(--red); }
+    .scenario .thesis { min-height:105px; font-size:16px; }
+    .scenario li { margin-bottom:7px; }
+    .refs,.muted,.empty { color:var(--muted); font-size:11px; }
+    .split { display:grid; grid-template-columns:1fr 1fr; gap:52px; }
+    ul { padding-left:20px; }
+    table { width:100%; border-collapse:collapse; font-size:12px; }
+    th,td { padding:12px 10px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { border-top:2px solid var(--ink); color:var(--muted); font:700 9px/1.3 var(--mono); }
+    .claim-text { min-width:340px; }
+    code { font-family:var(--mono); font-size:.9em; }
+    .table-wrap { overflow-x:auto; }
+    .sources { display:grid; grid-template-columns:repeat(2,1fr); gap:0 34px; padding:0; border-top:2px solid var(--ink); list-style:none; }
+    .sources li { padding:14px 0; border-bottom:1px solid var(--line); }
+    .sources span { display:block; color:var(--muted); font-size:11px; }
+    .analyst-report { padding-top:0; }
+    .analyst-report > .eyebrow { margin-top:55px; }
+    .analyst-lead { position:relative; padding:39px 42px 43px; color:var(--raised); background:var(--ink); }
+    .analyst-lead::before { position:absolute; inset:0 auto 0 0; width:6px; background:var(--green); content:""; }
+    .analyst-lead h3 { max-width:920px; margin:23px 0 0; font-size:clamp(31px,4.4vw,50px); letter-spacing:-.045em; }
+    .analyst-lead > p { max-width:900px; margin:19px 0 0; color:#c9ccc5; font-size:15px; }
+    .analyst-verdict { display:flex; flex-wrap:wrap; gap:8px; }
+    .analyst-verdict span { padding:5px 8px; border:1px solid #6f736c; color:#d8dbd4; font-size:10px; font-weight:700; }
+    .analyst-verdict .stance { border-color:#9bc4ad; color:#c7e5d3; }
+    .key-points { display:grid; grid-template-columns:repeat(3,1fr); border:1px solid var(--ink); border-top:0; }
+    .key-point { min-width:0; padding:24px; border-right:1px solid var(--line); }
+    .key-point:last-child { border-right:0; }
+    .key-point .number,.monitoring .number { color:var(--green); font:800 10px/1 var(--mono); }
+    .key-point h3 { margin:11px 0 9px; font-size:18px; }
+    .key-point p,.perspective p,.monitoring p { margin:0; color:var(--soft); font-size:13px; }
+    .analyst-refs { display:flex; flex-wrap:wrap; gap:5px; margin-top:14px; color:var(--muted); font:600 9px/1.5 var(--mono); }
+    .report-subhead { display:flex; justify-content:space-between; gap:20px; align-items:end; margin:38px 0 14px; }
+    .report-subhead h3,.report-subhead p { margin:0; }
+    .report-subhead h3 { font-size:24px; }
+    .report-subhead p { color:var(--muted); font-size:11px; }
+    .perspectives { display:grid; grid-template-columns:1fr 1fr; border-top:2px solid var(--ink); }
+    .perspective { min-width:0; padding:21px; border-right:1px solid var(--line); border-bottom:1px solid var(--line); border-left:4px solid var(--strong); }
+    .perspective:nth-child(even) { border-right:0; }
+    .perspective.impact-supportive { border-left-color:var(--green); }
+    .perspective.impact-mixed { border-left-color:var(--amber); }
+    .perspective.impact-cautionary { border-left-color:var(--red); }
+    .perspective header { display:flex; justify-content:space-between; gap:14px; padding:0; border:0; }
+    .perspective h3 { margin:0; font-size:16px; }
+    .perspective header span { color:var(--muted); font-size:9px; font-weight:700; }
+    .perspective p { margin-top:12px; }
+    .monitoring { margin:0; padding:0; border-top:2px solid var(--ink); list-style:none; }
+    .monitoring li { display:grid; grid-template-columns:42px minmax(0,1fr) minmax(170px,.35fr); gap:17px; padding:19px 0; border-bottom:1px solid var(--line); }
+    .monitoring h3 { margin:0 0 6px; font-size:16px; }
+    .monitoring .analyst-refs { justify-content:flex-end; margin-top:2px; }
+    .final-assessment { margin-top:38px; padding:23px 26px; border-left:5px solid var(--green); background:var(--green-pale); }
+    .final-assessment > span { color:var(--green); font:800 10px/1 var(--mono); }
+    .final-assessment > p { margin:8px 0 0; font-size:16px; font-weight:650; }
+    footer { display:flex; justify-content:space-between; gap:20px; padding:23px 0; color:var(--muted); font:500 10px/1.4 var(--mono); }
+    @keyframes reveal { from { opacity:0; transform:translateY(9px); } to { opacity:1; transform:translateY(0); } }
+    .report-head,.page > section { animation:reveal 420ms cubic-bezier(.2,.8,.2,1) both; }
+    .page > section:nth-of-type(1) { animation-delay:60ms; }
+    @media (max-width:820px) {
+      .page { width:min(100% - 28px,1180px); }
+      .report-brand { min-height:62px; align-items:flex-start; flex-direction:column; justify-content:center; gap:3px; }
+      .report-head,.split { grid-template-columns:1fr; }
+      .report-head { gap:30px; padding:45px 0 34px; }
+      .overview,.lanes,.scenarios,.sources,.key-points,.perspectives { grid-template-columns:1fr; }
+      .overview div,.lane,.scenario,.key-point,.perspective { border-right:0; border-bottom:1px solid var(--line); }
+      .overview div:last-child,.lane:last-child,.scenario:last-child,.key-point:last-child { border-bottom:0; }
+      section { padding:46px 0; }
+      .scenario { min-height:0; }
+      .analyst-report > .eyebrow { margin-top:45px; }
+      .analyst-lead { padding:29px 22px 31px 28px; }
+      .report-subhead { align-items:start; flex-direction:column; gap:4px; }
+      .monitoring li { grid-template-columns:27px 1fr; gap:8px; }
+      .monitoring .analyst-refs { grid-column:2; justify-content:flex-start; }
+      .final-assessment { padding:21px 18px; }
+      footer { align-items:flex-start; flex-direction:column; gap:7px; }
+    }
+    @media print {
+      body { background:white; }
+      .page { width:100%; margin:0; }
+      .report-brand { min-height:42px; }
+      .scenario,.lane,.key-point { break-inside:avoid; }
+      a { color:inherit; text-decoration:none; }
+    }
+    @media (prefers-reduced-motion:reduce) {
+      *,*::before,*::after { scroll-behavior:auto!important; animation:none!important; transition:none!important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="report-brand"><strong>나의 주식 분석</strong><span>수석 애널리스트 보고서 · 읽기 전용</span></div>
+    <header class="report-head">
+      <div><p class="eyebrow">검증된 주식 분석 · NASDAQ</p><h1>AAPL</h1><p>일봉 · 1~3개월 · 미국 달러</p></div>
+      <aside class="meta"><span>분석 기준 시각</span><strong>2026-08-17T16:00:00-04:00</strong><span>실행 기록 · 20260817-AAPL-daily</span></aside>
+    </header>
+
+    <section class="analyst-report"><p class="eyebrow">수석 애널리스트 브리핑</p><h2>종합 의견</h2><article class="analyst-lead"><div class="analyst-verdict"><span class="stance stance-balanced">현재 판단 · 균형</span><span>확신 수준 · 보통</span></div><h3>사업 성장은 견조하지만 302달러 지지와 단기 이동평균 회복 확인이 필요하다</h3><p>애플은 3분기에 두 자릿수 매출·주당이익 성장과 서비스 확대를 기록했다. 다만 관세 환급이 수익성을 일시적으로 높였고 다음 분기에는 공급 제약과 메모리 원가 상승이 예고됐다. 8월 17일 종가는 20일선과 50일선 아래이며 RSI는 과매도권이므로, 302.25달러 지지와 309.08~317.38달러 회복 여부가 1~3개월 판단의 핵심이다.</p></article><div class="key-points"><article class="key-point"><span class="number">01</span><h3>본업과 서비스 매출이 함께 성장했다</h3><p>전체 매출과 주당이익이 두 자릿수 증가했고 서비스 매출도 확대돼 사업 기반은 견조하다.</p><div class="analyst-refs">근거 <code>aapl-fund-001</code> <code>aapl-fund-002</code></div></article><article class="key-point"><span class="number">02</span><h3>수익성의 일회성 기여를 분리해야 한다</h3><p>관세 환급이 매출총이익률과 주당이익을 높였고 다음 분기에는 공급 제약과 메모리 원가 부담이 커질 수 있다.</p><div class="analyst-refs">근거 <code>aapl-fund-003</code> <code>aapl-news-001</code></div></article><article class="key-point"><span class="number">03</span><h3>과매도와 약세 추세가 겹쳤다</h3><p>RSI는 과매도권이지만 종가는 20일·50일선 아래이고 거래량도 20일 평균을 밑돌아 추세 반전 확인은 부족하다.</p><div class="analyst-refs">근거 <code>aapl-tech-002</code> <code>aapl-tech-003</code> <code>aapl-tech-004</code></div></article></div><div class="report-subhead"><h3>관점별 종합</h3><p>각 분석이 최종 판단에 미친 영향입니다.</p></div><div class="perspectives"><article class="perspective impact-cautionary"><header><h3>기술적 관점</h3><span>주의 요인</span></header><p>302.25달러 부근에서 과매도 반등 가능성은 있으나 309.08달러와 317.38달러를 회복하기 전에는 단기 약세가 우세하다.</p><div class="analyst-refs">근거 <code>aapl-tech-002</code> <code>aapl-tech-003</code> <code>aapl-tech-004</code></div></article><article class="perspective impact-supportive"><header><h3>펀더멘털 관점</h3><span>긍정 기여</span></header><p>매출·주당이익·서비스 성장은 우호적이지만 관세 환급을 제외한 반복 이익력을 후속 분기에서 확인해야 한다.</p><div class="analyst-refs">근거 <code>aapl-fund-001</code> <code>aapl-fund-002</code> <code>aapl-fund-003</code></div></article><article class="perspective impact-mixed"><header><h3>뉴스·시장 관점</h3><span>혼재</span></header><p>다음 분기 9~11% 매출 성장 전망은 긍정적이나 공급 제약 확대와 메모리 원가 상승이 이를 상쇄할 수 있다.</p><div class="analyst-refs">근거 <code>aapl-news-001</code></div></article><article class="perspective impact-cautionary"><header><h3>반대 관점</h3><span>주의 요인</span></header><p>관세·공급망·부품 원가와 경쟁·규제 변화가 매출 성장의 마진 전환을 제약할 수 있다.</p><div class="analyst-refs">근거 <code>aapl-fund-003</code> <code>aapl-news-001</code> <code>aapl-risk-001</code></div></article></div><div class="report-subhead"><h3>판단을 바꿀 신호</h3><p>다음 분석에서 우선 확인할 항목입니다.</p></div><ol class="monitoring"><li><span class="number">01</span><div><h3>302.25달러 최근 저점 지지 여부</h3><p>저점 유지와 거래량 회복이 동반되면 과매도 반등 가능성이 높아지지만 종가 이탈은 약세 연장 신호다.</p></div><div class="analyst-refs">근거 <code>aapl-tech-003</code> <code>aapl-tech-004</code> <code>aapl-syn-001</code></div></li><li><span class="number">02</span><div><h3>309.08달러 50일선과 317.38달러 20일선 회복</h3><p>두 이동평균을 순차적으로 회복해야 단순 과매도 반등이 단기 추세 개선으로 이어졌다고 평가할 근거가 생긴다.</p></div><div class="analyst-refs">근거 <code>aapl-tech-002</code> <code>aapl-syn-001</code></div></li><li><span class="number">03</span><div><h3>다음 분기 공급 제약과 메모리 원가</h3><p>매출 성장 전망을 유지하면서 비용 압력을 흡수하는지가 관세 환급 이후 이익의 질을 가른다.</p></div><div class="analyst-refs">근거 <code>aapl-fund-003</code> <code>aapl-news-001</code> <code>aapl-risk-001</code></div></li></ol><aside class="final-assessment"><span>최종 판단</span><p>애플의 사업 체력은 견조하지만 현재 가격은 단기 약세 추세 안의 과매도 상태다. 1~3개월에는 302.25달러 지지와 309.08~317.38달러 회복을 확인하기 전까지 균형적 관찰이 적절하다.</p><div class="analyst-refs">근거 <code>aapl-syn-001</code> <code>aapl-tech-002</code> <code>aapl-tech-004</code> <code>aapl-fund-002</code></div></aside></section>
+
+    <section>
+      <p class="eyebrow">검증 요약</p><h2>검증을 통과한 분석</h2>
+      <div class="overview"><div><strong>3</strong><span>출처</span></div><div><strong>10</strong><span>원자 주장</span></div><div><strong>통과</strong><span>반대 검토 · 2026-08-18T09:36:00+09:00</span></div></div>
+    </section>
+
+    <section><p class="eyebrow">독립 분석 영역</p><h2>세 개의 독립 분석</h2><div class="lanes"><article class="lane"><span class="status complete">완료</span><h3>기술</h3><strong>4</strong><small>개 주장 · 사실 2 · 추론 2</small></article><article class="lane"><span class="status complete">완료</span><h3>펀더멘털</h3><strong>4</strong><small>개 주장 · 사실 3 · 추론 1</small></article><article class="lane"><span class="status complete">완료</span><h3>뉴스</h3><strong>1</strong><small>개 주장 · 사실 1 · 추론 0</small></article></div></section>
+    <section><p class="eyebrow">조건별 시나리오</p><h2>상승·기준·하락 경로</h2><div class="scenarios"><article class="scenario bull"><p class="kicker">상승 시나리오</p><h3>상승</h3><p class="thesis">서비스 성장과 다음 분기 매출 전망이 유지되고 과매도 반등이 단기 추세 회복으로 이어진다.</p><h4>확인 조건</h4><ul><li>302.25달러 지지가 유지된다</li><li>309.08달러와 317.38달러를 거래량 회복과 함께 순차적으로 넘어선다</li><li>공급 제약에도 9~11% 매출 성장 전망이 유지된다</li></ul><h4>무효화</h4><p>302.25달러를 종가 기준으로 이탈하거나 회사의 성장 전망이 하향되면 이 시나리오는 무효다.</p><p class="refs">근거 주장: aapl-tech-002, aapl-tech-004, aapl-fund-002, aapl-news-001</p></article><article class="scenario base"><p class="kicker">기준 시나리오</p><h3>기준</h3><p class="thesis">견조한 실적과 비용·공급 부담이 맞서며 302.25~317.38달러에서 방향을 탐색한다.</p><h4>확인 조건</h4><ul><li>302.25달러 부근 지지가 이어진다</li><li>RSI 과매도가 완화되지만 317.38달러 돌파는 제한된다</li><li>다음 분기 매출 성장 전망이 유지된다</li></ul><h4>무효화</h4><p>317.38달러를 거래량과 함께 강하게 돌파하거나 302.25달러를 종가 기준으로 이탈하면 범위 가정은 무효다.</p><p class="refs">근거 주장: aapl-tech-003, aapl-tech-004, aapl-news-001, aapl-syn-001</p></article><article class="scenario bear"><p class="kicker">하락 시나리오</p><h3>하락</h3><p class="thesis">공급 제약과 메모리 원가 상승이 환급 효과 소멸 이후 마진을 압박하고 단기 약세가 이어진다.</p><h4>확인 조건</h4><ul><li>302.25달러를 종가 기준으로 이탈한다</li><li>다음 분기 매출 성장 전망이 하향된다</li><li>관세 환급 효과 소멸과 함께 매출총이익률 둔화가 확인된다</li></ul><h4>무효화</h4><p>317.38달러를 20일 평균 이상의 거래량으로 회복하고 성장 전망이 유지되면 이 시나리오는 무효다.</p><p class="refs">근거 주장: aapl-tech-004, aapl-fund-003, aapl-news-001, aapl-risk-001</p></article></div></section>
+
+    <section>
+      <div class="split">
+        <div><p class="eyebrow">반대 근거</p><h2>충돌하는 증거</h2><ul><li>두 자릿수 실적 성장과 서비스 확대는 긍정적이지만 관세 환급의 일회성 기여와 공급 제약이 이익 지속성 판단을 흐린다. 관련 근거: aapl-fund-001, aapl-fund-002, aapl-fund-003, aapl-news-001.</li><li>RSI는 과매도 반등 가능성을 시사하지만 가격은 20일·50일선 아래이고 거래량도 평균보다 낮아 추세 신호는 아직 약세다. 관련 근거: aapl-tech-002, aapl-tech-003, aapl-tech-004.</li></ul></div>
+        <div><p class="eyebrow">분석 공백</p><h2>판단의 한계</h2><ul><li>가격과 기술지표는 야후 파이낸스의 비조정 일별 원자료를 2026년 8월 17일 정규장까지만 잘라 단순 방식으로 계산했으며 다른 제공사의 조정주가 방식과 차이가 날 수 있다.</li><li>야후 파이낸스 시장 데이터는 나스닥 거래소의 공식 종가 파일이 아니며 이번 실행에서는 동일 날짜의 나스닥 과거시세 API가 값을 반환하지 않아 별도 거래소 교차검증을 완료하지 못했다.</li><li>최신 제품별 공급 부족 규모와 시장 가치평가 배수는 검증 가능한 동일 시점 자료가 부족해 결론에 사용하지 않았다.</li><li>이 자료는 정보 제공용 연구이며 개인화된 투자 조언, 매수·매도 제안 또는 주문 지시가 아니다.</li></ul></div>
+      </div>
+    </section>
+
+    <section><p class="eyebrow">원자 주장</p><h2>주장과 출처 추적</h2><div class="table-wrap"><table><thead><tr><th>식별자</th><th>구분</th><th>주장</th><th>신뢰도</th><th>출처</th></tr></thead><tbody><tr><td><code>aapl-tech-001</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">2026년 8월 17일 정규장 종가는 305.59달러로 전 거래일 305.93달러보다 0.11% 하락했고, 정규장 거래량은 32,743,947주였다.</td><td>98%</td><td><a href="https://query2.finance.yahoo.com/v8/finance/chart/AAPL?period1=1723507200&amp;period2=1787097600&amp;interval=1d&amp;events=history" target="_blank" rel="noreferrer">aapl-src-market</a></td></tr><tr><td><code>aapl-tech-002</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">8월 17일 종가는 20일 단순이동평균 317.38달러와 50일 단순이동평균 309.08달러를 밑돌았지만 200일 단순이동평균 280.67달러는 웃돌았다.</td><td>97%</td><td><a href="https://query2.finance.yahoo.com/v8/finance/chart/AAPL?period1=1723507200&amp;period2=1787097600&amp;interval=1d&amp;events=history" target="_blank" rel="noreferrer">aapl-src-market</a></td></tr><tr><td><code>aapl-tech-003</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">최근 20거래일 종가 수익률은 -6.43%이고 단순 방식 14일 상대강도지수는 22.04로, 단기 약세 추세 안에서 과매도 반등 가능성이 함께 커진 상태다.</td><td>93%</td><td><a href="https://query2.finance.yahoo.com/v8/finance/chart/AAPL?period1=1723507200&amp;period2=1787097600&amp;interval=1d&amp;events=history" target="_blank" rel="noreferrer">aapl-src-market</a></td></tr><tr><td><code>aapl-tech-004</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">최근 20거래일 종가 범위는 302.25~340.08달러이고 8월 17일 거래량은 20일 평균의 0.63배였다. 302.25달러 지지는 관찰 대상이지만 거래량만으로 반전이 확인되지는 않았다.</td><td>91%</td><td><a href="https://query2.finance.yahoo.com/v8/finance/chart/AAPL?period1=1723507200&amp;period2=1787097600&amp;interval=1d&amp;events=history" target="_blank" rel="noreferrer">aapl-src-market</a></td></tr><tr><td><code>aapl-fund-001</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">2026 회계연도 3분기 매출은 1,094억달러로 전년 동기 대비 16% 증가했고 희석주당이익은 2.02달러로 29% 늘었다.</td><td>99%</td><td><a href="https://www.apple.com/newsroom/2026/07/apple-reports-third-quarter-results/" target="_blank" rel="noreferrer">aapl-src-q3</a></td></tr><tr><td><code>aapl-fund-002</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">3분기 매출총이익률은 50.1%였고 아이폰·맥·서비스 매출은 각각 6월 분기 기준 최고치를 기록했으며 서비스 매출은 307억4,000만달러였다.</td><td>98%</td><td><a href="https://www.apple.com/newsroom/2026/07/apple-reports-third-quarter-results/" target="_blank" rel="noreferrer">aapl-src-q3</a>, <a href="https://www.axios.com/2026/07/30/apple-earnings-beat-estimates-boosted-by-tariff-refunds" target="_blank" rel="noreferrer">aapl-src-news</a></td></tr><tr><td><code>aapl-fund-003</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">3분기 매출총이익률에는 관세 환급이 약 2%포인트, 희석주당이익에는 0.11달러 기여했으므로 보고된 수익성 개선 전부를 반복 가능한 영업 성과로 볼 수 없다.</td><td>97%</td><td><a href="https://www.apple.com/newsroom/2026/07/apple-reports-third-quarter-results/" target="_blank" rel="noreferrer">aapl-src-q3</a>, <a href="https://www.axios.com/2026/07/30/apple-earnings-beat-estimates-boosted-by-tariff-refunds" target="_blank" rel="noreferrer">aapl-src-news</a></td></tr><tr><td><code>aapl-news-001</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">회사는 다음 분기 매출이 전년 동기 대비 9~11% 증가할 것으로 예상하면서 아이폰·맥·아이패드의 공급 제약 확대와 더 높은 메모리 원가를 함께 언급했다.</td><td>95%</td><td><a href="https://www.axios.com/2026/07/30/apple-earnings-beat-estimates-boosted-by-tariff-refunds" target="_blank" rel="noreferrer">aapl-src-news</a></td></tr><tr><td><code>aapl-risk-001</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">공식 실적자료는 무역·정부 정책, 제3자 부품·제조 의존, 제품 전환, 경쟁, 정보보안, 법률·규제 변화를 주요 불확실성으로 제시한다.</td><td>96%</td><td><a href="https://www.apple.com/newsroom/2026/07/apple-reports-third-quarter-results/" target="_blank" rel="noreferrer">aapl-src-q3</a></td></tr><tr><td><code>aapl-syn-001</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">두 자릿수 매출 성장과 서비스 확대는 사업 체력을 지지하지만, 단기 가격은 주요 이동평균 아래이고 관세 환급의 일회성 기여와 공급·메모리 원가 부담이 있어 1~3개월 평가는 반등 확인 전까지 중립이다.</td><td>89%</td><td><a href="https://query2.finance.yahoo.com/v8/finance/chart/AAPL?period1=1723507200&amp;period2=1787097600&amp;interval=1d&amp;events=history" target="_blank" rel="noreferrer">aapl-src-market</a>, <a href="https://www.apple.com/newsroom/2026/07/apple-reports-third-quarter-results/" target="_blank" rel="noreferrer">aapl-src-q3</a>, <a href="https://www.axios.com/2026/07/30/apple-earnings-beat-estimates-boosted-by-tariff-refunds" target="_blank" rel="noreferrer">aapl-src-news</a></td></tr></tbody></table></div></section>
+    <section><p class="eyebrow">근거 자료</p><h2>출처 목록</h2><ol class="sources"><li><a href="https://query2.finance.yahoo.com/v8/finance/chart/AAPL?period1=1723507200&amp;period2=1787097600&amp;interval=1d&amp;events=history" target="_blank" rel="noreferrer">야후 파이낸스 차트 API - 애플 일별 정규장 시세</a><span><code>aapl-src-market</code> · 시장 데이터 제공사 API · 2026-08-17T20:00:00Z</span></li><li><a href="https://www.apple.com/newsroom/2026/07/apple-reports-third-quarter-results/" target="_blank" rel="noreferrer">애플 2026 회계연도 3분기 실적 발표</a><span><code>aapl-src-q3</code> · 기업 공식 실적자료 · 2026-07-30T16:30:00-04:00</span></li><li><a href="https://www.axios.com/2026/07/30/apple-earnings-beat-estimates-boosted-by-tariff-refunds" target="_blank" rel="noreferrer">애플 실적 상회와 관세 환급·공급 제약 분석</a><span><code>aapl-src-news</code> · 독립 시사 보도 · 2026-07-30T20:57:44Z</span></li></ol></section>
+    <footer><span>분석 근거 스키마 1.1 · 결정적 보고서</span><span>주문 실행 없음 · 개인화된 투자 조언 아님</span></footer>
+  </main>
+</body>
+</html>
