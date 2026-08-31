@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f3f0e7">
+  <title>NFLX 주식 분석</title>
+  <style>
+    :root {
+      --paper:#f3f0e7; --raised:#faf8f2; --ink:#181a17; --soft:#3f433e;
+      --muted:#6b6f68; --line:#cbc7bb; --strong:#7f827b; --green:#174f3a;
+      --green-pale:#e4ede7; --amber:#765817; --red:#963a31;
+      --display:AppleMyungjo,"Noto Serif KR","Nanum Myeongjo",Georgia,serif;
+      --body:Pretendard,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+      --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; color:var(--ink); background:var(--paper); font-family:var(--body); line-height:1.68; word-break:keep-all; -webkit-font-smoothing:antialiased; }
+    a { color:var(--green); text-underline-offset:3px; }
+    a:focus-visible { outline:3px solid var(--green); outline-offset:3px; }
+    h1,h2,h3,h4,p { margin-top:0; }
+    .page { width:min(1180px,calc(100% - 44px)); margin:0 auto 64px; }
+    .report-brand { min-height:68px; display:flex; justify-content:space-between; gap:20px; align-items:center; border-bottom:1px solid var(--ink); color:var(--muted); font:600 10px/1.3 var(--mono); }
+    .report-brand strong { color:var(--ink); font-family:var(--body); font-size:13px; letter-spacing:-.02em; }
+    .report-head { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:56px; align-items:end; padding:64px 0 46px; border-bottom:1px solid var(--ink); }
+    h1 { margin-bottom:14px; font:600 clamp(58px,9vw,108px)/.88 var(--display); letter-spacing:-.07em; }
+    h2 { margin-bottom:21px; font:600 clamp(31px,4vw,46px)/1.08 var(--display); letter-spacing:-.04em; }
+    h3 { font:600 24px/1.25 var(--display); }
+    h4 { margin:21px 0 8px; font:700 10px/1.3 var(--mono); letter-spacing:.06em; }
+    .eyebrow,.kicker { color:var(--green); font:750 10px/1.3 var(--mono); letter-spacing:.07em; }
+    .meta { padding:20px 0; border-top:2px solid var(--ink); border-bottom:1px solid var(--line); }
+    .meta span { display:block; color:var(--muted); font-size:10px; }
+    .meta strong { display:block; margin:6px 0; font:600 19px/1.3 var(--display); overflow-wrap:anywhere; }
+    section { padding:58px 0; border-bottom:1px solid var(--ink); }
+    .overview { display:grid; grid-template-columns:repeat(3,1fr); border-top:2px solid var(--ink); border-bottom:1px solid var(--line); }
+    .overview div { padding:20px; border-right:1px solid var(--line); }
+    .overview div:last-child { border-right:0; }
+    .overview strong { display:block; font:600 30px/1.1 var(--display); }
+    .overview span { color:var(--muted); font-size:11px; }
+    .lanes,.scenarios { display:grid; grid-template-columns:repeat(3,1fr); border-top:2px solid var(--ink); border-bottom:1px solid var(--line); }
+    .lane,.scenario { min-width:0; padding:23px; border-right:1px solid var(--line); }
+    .lane:last-child,.scenario:last-child { border-right:0; }
+    .lane strong { display:block; margin-top:24px; font:600 34px/1 var(--display); }
+    .lane small { color:var(--muted); }
+    .status,.kind { display:inline-block; padding:2px 6px; border:1px solid currentColor; font:700 9px/1.5 var(--mono); text-transform:uppercase; }
+    .status.complete,.kind.fact { color:var(--green); }
+    .status.omitted,.kind.inference { color:var(--amber); }
+    .scenario { min-height:410px; border-top:5px solid var(--strong); }
+    .scenario.bull { border-top-color:var(--green); }
+    .scenario.base { border-top-color:var(--soft); }
+    .scenario.bear { border-top-color:var(--red); }
+    .scenario .thesis { min-height:105px; font-size:16px; }
+    .scenario li { margin-bottom:7px; }
+    .refs,.muted,.empty { color:var(--muted); font-size:11px; }
+    .split { display:grid; grid-template-columns:1fr 1fr; gap:52px; }
+    ul { padding-left:20px; }
+    table { width:100%; border-collapse:collapse; font-size:12px; }
+    th,td { padding:12px 10px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { border-top:2px solid var(--ink); color:var(--muted); font:700 9px/1.3 var(--mono); }
+    .claim-text { min-width:340px; }
+    code { font-family:var(--mono); font-size:.9em; }
+    .table-wrap { overflow-x:auto; }
+    .sources { display:grid; grid-template-columns:repeat(2,1fr); gap:0 34px; padding:0; border-top:2px solid var(--ink); list-style:none; }
+    .sources li { padding:14px 0; border-bottom:1px solid var(--line); }
+    .sources span { display:block; color:var(--muted); font-size:11px; }
+    .analyst-report { padding-top:0; }
+    .analyst-report > .eyebrow { margin-top:55px; }
+    .analyst-lead { position:relative; padding:39px 42px 43px; color:var(--raised); background:var(--ink); }
+    .analyst-lead::before { position:absolute; inset:0 auto 0 0; width:6px; background:var(--green); content:""; }
+    .analyst-lead h3 { max-width:920px; margin:23px 0 0; font-size:clamp(31px,4.4vw,50px); letter-spacing:-.045em; }
+    .analyst-lead > p { max-width:900px; margin:19px 0 0; color:#c9ccc5; font-size:15px; }
+    .analyst-verdict { display:flex; flex-wrap:wrap; gap:8px; }
+    .analyst-verdict span { padding:5px 8px; border:1px solid #6f736c; color:#d8dbd4; font-size:10px; font-weight:700; }
+    .analyst-verdict .stance { border-color:#9bc4ad; color:#c7e5d3; }
+    .key-points { display:grid; grid-template-columns:repeat(3,1fr); border:1px solid var(--ink); border-top:0; }
+    .key-point { min-width:0; padding:24px; border-right:1px solid var(--line); }
+    .key-point:last-child { border-right:0; }
+    .key-point .number,.monitoring .number { color:var(--green); font:800 10px/1 var(--mono); }
+    .key-point h3 { margin:11px 0 9px; font-size:18px; }
+    .key-point p,.perspective p,.monitoring p { margin:0; color:var(--soft); font-size:13px; }
+    .analyst-refs { display:flex; flex-wrap:wrap; gap:5px; margin-top:14px; color:var(--muted); font:600 9px/1.5 var(--mono); }
+    .report-subhead { display:flex; justify-content:space-between; gap:20px; align-items:end; margin:38px 0 14px; }
+    .report-subhead h3,.report-subhead p { margin:0; }
+    .report-subhead h3 { font-size:24px; }
+    .report-subhead p { color:var(--muted); font-size:11px; }
+    .perspectives { display:grid; grid-template-columns:1fr 1fr; border-top:2px solid var(--ink); }
+    .perspective { min-width:0; padding:21px; border-right:1px solid var(--line); border-bottom:1px solid var(--line); border-left:4px solid var(--strong); }
+    .perspective:nth-child(even) { border-right:0; }
+    .perspective.impact-supportive { border-left-color:var(--green); }
+    .perspective.impact-mixed { border-left-color:var(--amber); }
+    .perspective.impact-cautionary { border-left-color:var(--red); }
+    .perspective header { display:flex; justify-content:space-between; gap:14px; padding:0; border:0; }
+    .perspective h3 { margin:0; font-size:16px; }
+    .perspective header span { color:var(--muted); font-size:9px; font-weight:700; }
+    .perspective p { margin-top:12px; }
+    .monitoring { margin:0; padding:0; border-top:2px solid var(--ink); list-style:none; }
+    .monitoring li { display:grid; grid-template-columns:42px minmax(0,1fr) minmax(170px,.35fr); gap:17px; padding:19px 0; border-bottom:1px solid var(--line); }
+    .monitoring h3 { margin:0 0 6px; font-size:16px; }
+    .monitoring .analyst-refs { justify-content:flex-end; margin-top:2px; }
+    .final-assessment { margin-top:38px; padding:23px 26px; border-left:5px solid var(--green); background:var(--green-pale); }
+    .final-assessment > span { color:var(--green); font:800 10px/1 var(--mono); }
+    .final-assessment > p { margin:8px 0 0; font-size:16px; font-weight:650; }
+    footer { display:flex; justify-content:space-between; gap:20px; padding:23px 0; color:var(--muted); font:500 10px/1.4 var(--mono); }
+    @keyframes reveal { from { opacity:0; transform:translateY(9px); } to { opacity:1; transform:translateY(0); } }
+    .report-head,.page > section { animation:reveal 420ms cubic-bezier(.2,.8,.2,1) both; }
+    .page > section:nth-of-type(1) { animation-delay:60ms; }
+    @media (max-width:820px) {
+      .page { width:min(100% - 28px,1180px); }
+      .report-brand { min-height:62px; align-items:flex-start; flex-direction:column; justify-content:center; gap:3px; }
+      .report-head,.split { grid-template-columns:1fr; }
+      .report-head { gap:30px; padding:45px 0 34px; }
+      .overview,.lanes,.scenarios,.sources,.key-points,.perspectives { grid-template-columns:1fr; }
+      .overview div,.lane,.scenario,.key-point,.perspective { border-right:0; border-bottom:1px solid var(--line); }
+      .overview div:last-child,.lane:last-child,.scenario:last-child,.key-point:last-child { border-bottom:0; }
+      section { padding:46px 0; }
+      .scenario { min-height:0; }
+      .analyst-report > .eyebrow { margin-top:45px; }
+      .analyst-lead { padding:29px 22px 31px 28px; }
+      .report-subhead { align-items:start; flex-direction:column; gap:4px; }
+      .monitoring li { grid-template-columns:27px 1fr; gap:8px; }
+      .monitoring .analyst-refs { grid-column:2; justify-content:flex-start; }
+      .final-assessment { padding:21px 18px; }
+      footer { align-items:flex-start; flex-direction:column; gap:7px; }
+    }
+    @media print {
+      body { background:white; }
+      .page { width:100%; margin:0; }
+      .report-brand { min-height:42px; }
+      .scenario,.lane,.key-point { break-inside:avoid; }
+      a { color:inherit; text-decoration:none; }
+    }
+    @media (prefers-reduced-motion:reduce) {
+      *,*::before,*::after { scroll-behavior:auto!important; animation:none!important; transition:none!important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="report-brand"><strong>나의 주식 분석</strong><span>수석 애널리스트 보고서 · 읽기 전용</span></div>
+    <header class="report-head">
+      <div><p class="eyebrow">검증된 주식 분석 · NASDAQ</p><h1>NFLX</h1><p>일봉 · 1~3개월 · 미국 달러</p></div>
+      <aside class="meta"><span>분석 기준 시각</span><strong>2026-08-28T16:00:00-04:00</strong><span>실행 기록 · 20260828-NFLX-daily</span></aside>
+    </header>
+
+    <section class="analyst-report"><p class="eyebrow">수석 애널리스트 브리핑</p><h2>종합 의견</h2><article class="analyst-lead"><div class="analyst-verdict"><span class="stance stance-constructive">현재 판단 · 긍정적</span><span>확신 수준 · 보통</span></div><h3>20일 평균 위의 반등은 우호적이지만 82.46달러 돌파와 현금흐름 확인이 필요하다</h3><p>넷플릭스의 8월 28일 종가는 81.72달러로 5일·20일 평균을 웃돌며 최근 20거래일 상단에 접근했다. 2분기 매출과 영업이익은 성장했고 연간 전망도 유지됐다. 다만 영업이익률과 잉여현금흐름은 전년 동기보다 낮았고 광고 매출 확대는 아직 전망이다. 1~3개월에는 82.46달러 돌파, 77.48달러 지지와 3분기 실적의 전망 부합 여부를 함께 확인해야 한다.</p></article><div class="key-points"><article class="key-point"><span class="number">01</span><h3>가격은 상승 구조의 상단에 있다</h3><p>종가는 5일·20일 평균을 웃돌지만 최근 20거래일 고점 82.455달러를 아직 종가로 넘지 못했다.</p><div class="analyst-refs">근거 <code>nflx-tech-001</code> <code>nflx-tech-002</code> <code>nflx-tech-003</code></div></article><article class="key-point"><span class="number">02</span><h3>매출과 이익은 성장했다</h3><p>2분기 매출과 영업이익의 두 자릿수 성장은 사업 체력을 지지한다.</p><div class="analyst-refs">근거 <code>nflx-fund-001</code></div></article><article class="key-point"><span class="number">03</span><h3>이익률과 현금흐름은 혼재한다</h3><p>영업이익률과 잉여현금흐름이 전년 동기보다 낮아 성장의 질을 추가 확인해야 한다.</p><div class="analyst-refs">근거 <code>nflx-fund-002</code></div></article><article class="key-point"><span class="number">04</span><h3>광고 확대는 중요한 미확정 변수다</h3><p>연간 광고 매출 약 30억달러 전망은 성장 동력이지만 실제 달성 여부는 3분기 이후 확인이 필요하다.</p><div class="analyst-refs">근거 <code>nflx-news-001</code> <code>nflx-news-002</code> <code>nflx-risk-001</code></div></article></div><div class="report-subhead"><h3>관점별 종합</h3><p>각 분석이 최종 판단에 미친 영향입니다.</p></div><div class="perspectives"><article class="perspective impact-supportive"><header><h3>기술적 관점</h3><span>긍정 기여</span></header><p>5일·20일 평균 위의 가격은 우호적이지만 82.46달러 돌파 전에는 범위 상단 저항이 남아 있다.</p><div class="analyst-refs">근거 <code>nflx-tech-002</code> <code>nflx-tech-003</code></div></article><article class="perspective impact-mixed"><header><h3>펀더멘털 관점</h3><span>혼재</span></header><p>매출과 영업이익은 성장했지만 전년 대비 낮은 영업이익률과 잉여현금흐름은 질적 부담이다.</p><div class="analyst-refs">근거 <code>nflx-fund-001</code> <code>nflx-fund-002</code></div></article><article class="perspective impact-supportive"><header><h3>뉴스·시장 관점</h3><span>긍정 기여</span></header><p>연간 매출·이익률 전망 유지와 광고 매출 확대 목표는 우호적이지만 모두 향후 실행 확인이 필요하다.</p><div class="analyst-refs">근거 <code>nflx-news-001</code> <code>nflx-news-002</code></div></article><article class="perspective impact-cautionary"><header><h3>반대 관점</h3><span>주의 요인</span></header><p>가격 인상 반응, 광고 수익화와 콘텐츠 비용이 이익률과 현금흐름의 지속성을 좌우할 수 있다.</p><div class="analyst-refs">근거 <code>nflx-fund-002</code> <code>nflx-risk-001</code></div></article></div><div class="report-subhead"><h3>판단을 바꿀 신호</h3><p>다음 분석에서 우선 확인할 항목입니다.</p></div><ol class="monitoring"><li><span class="number">01</span><div><h3>82.46달러 종가 돌파</h3><p>최근 20거래일 장중 고점을 종가로 넘으면 상승 추세 연장의 근거가 강화된다.</p></div><div class="analyst-refs">근거 <code>nflx-tech-003</code></div></li><li><span class="number">02</span><div><h3>77.48달러 20일 평균 지지</h3><p>이 평균을 지키면 기준 시나리오가 유지되고 지속 이탈하면 반등 실패 위험이 커진다.</p></div><div class="analyst-refs">근거 <code>nflx-tech-002</code> <code>nflx-tech-003</code></div></li><li><span class="number">03</span><div><h3>3분기 매출·영업이익률과 광고 매출</h3><p>회사 전망 부합과 광고 확대가 함께 나타나야 실적 재평가가 이어질 수 있다.</p></div><div class="analyst-refs">근거 <code>nflx-news-001</code> <code>nflx-news-002</code> <code>nflx-risk-001</code></div></li></ol><aside class="final-assessment"><span>최종 판단</span><p>가격과 절대 이익은 우호적이지만 최근 고점 저항과 이익률·현금흐름의 혼재 신호가 남아 있다. 1~3개월 평가는 82.46달러 돌파와 77.48달러 지지, 3분기 전망 달성을 조건으로 한 긍정이 타당하다.</p><div class="analyst-refs">근거 <code>nflx-syn-001</code> <code>nflx-tech-003</code> <code>nflx-fund-002</code> <code>nflx-news-001</code></div></aside></section>
+
+    <section>
+      <p class="eyebrow">검증 요약</p><h2>검증을 통과한 분석</h2>
+      <div class="overview"><div><strong>2</strong><span>출처</span></div><div><strong>9</strong><span>원자 주장</span></div><div><strong>통과</strong><span>반대 검토 · 2026-08-31T12:03:57+09:00</span></div></div>
+    </section>
+
+    <section><p class="eyebrow">독립 분석 영역</p><h2>세 개의 독립 분석</h2><div class="lanes"><article class="lane"><span class="status complete">완료</span><h3>기술</h3><strong>3</strong><small>개 주장 · 사실 2 · 추론 1</small></article><article class="lane"><span class="status complete">완료</span><h3>펀더멘털</h3><strong>3</strong><small>개 주장 · 사실 2 · 추론 1</small></article><article class="lane"><span class="status complete">완료</span><h3>뉴스</h3><strong>2</strong><small>개 주장 · 사실 2 · 추론 0</small></article></div></section>
+    <section><p class="eyebrow">조건별 시나리오</p><h2>상승·기준·하락 경로</h2><div class="scenarios"><article class="scenario bull"><p class="kicker">상승 시나리오</p><h3>상승</h3><p class="thesis">가격이 최근 고점을 돌파하고 광고 수익화와 실적이 회사 전망에 부합하며 상승 추세가 이어진다.</p><h4>확인 조건</h4><ul><li>82.46달러를 종가 기준 돌파한다</li><li>77.48달러 20일 평균 위의 상승 구조가 유지된다</li><li>3분기 매출과 영업이익률이 회사 전망에 부합하고 광고 확대가 확인된다</li></ul><h4>무효화</h4><p>77.48달러를 지속 이탈하거나 3분기 매출·이익률과 광고 성과가 전망을 함께 밑돌면 무효다.</p><p class="refs">근거 주장: nflx-tech-002, nflx-tech-003, nflx-news-001, nflx-news-002, nflx-risk-001</p></article><article class="scenario base"><p class="kicker">기준 시나리오</p><h3>기준</h3><p class="thesis">매출·이익 성장과 현금흐름 부담이 균형을 이루며 77.48~82.46달러에서 실적 확인을 기다린다.</p><h4>확인 조건</h4><ul><li>77.48달러 20일 평균이 지지된다</li><li>82.46달러 아래에서 변동성이 안정된다</li><li>3분기 회사 전망이 유지된다</li></ul><h4>무효화</h4><p>82.46달러를 돌파하거나 77.48달러를 거래량 증가와 함께 이탈하면 범위 가정은 무효다.</p><p class="refs">근거 주장: nflx-tech-003, nflx-fund-002, nflx-news-001, nflx-syn-001</p></article><article class="scenario bear"><p class="kicker">하락 시나리오</p><h3>하락</h3><p class="thesis">고점 돌파 실패와 이익률·현금흐름 부담이 부각돼 20일 평균 아래로 조정이 확대된다.</p><h4>확인 조건</h4><ul><li>77.48달러 20일 평균을 종가 기준 지속 이탈한다</li><li>3분기 매출 또는 영업이익률이 회사 전망을 밑돈다</li><li>광고 수익화가 둔화하거나 콘텐츠 현금지출 부담이 커진다</li></ul><h4>무효화</h4><p>82.46달러를 회복하고 3분기 실적과 광고 성과가 회사 전망에 부합하면 무효다.</p><p class="refs">근거 주장: nflx-tech-003, nflx-fund-002, nflx-news-001, nflx-risk-001</p></article></div></section>
+
+    <section>
+      <div class="split">
+        <div><p class="eyebrow">반대 근거</p><h2>충돌하는 증거</h2><ul><li>2분기 매출과 영업이익은 성장했지만 영업이익률과 잉여현금흐름은 전년 동기보다 낮았다. 관련 근거: nflx-fund-001, nflx-fund-002.</li><li>주가는 5일·20일 평균 위지만 최근 20거래일 고점 82.455달러를 아직 종가로 넘지 못했다. 관련 근거: nflx-tech-002, nflx-tech-003.</li><li>연간 광고 매출 확대 전망은 우호적이지만 미래 전망으로 실제 달성 여부가 남아 있다. 관련 근거: nflx-news-002, nflx-risk-001.</li></ul></div>
+        <div><p class="eyebrow">분석 공백</p><h2>판단의 한계</h2><ul><li>정규장 기술 통계는 독립 시장 데이터 제공사의 비조정 일별 자료를 계산했으며 거래량은 제공사별 집계 차이가 날 수 있다.</li><li>8월 28일 정규장 마감 이후 장외 거래와 8월 31일 장중 데이터는 사용하지 않았다.</li><li>최근 20거래일 이동평균과 범위는 8월 3일부터 8월 28일까지의 공개 일별 시세를 단순 계산한 값이다.</li><li>광고 매출과 3분기·연간 전망은 회사의 미래 전망이며 독립적으로 확정된 실적이 아니다.</li><li>이 자료는 정보 제공용 연구이며 개인화된 투자 조언, 매수·매도 제안 또는 주문 지시가 아니다.</li></ul></div>
+      </div>
+    </section>
+
+    <section><p class="eyebrow">원자 주장</p><h2>주장과 출처 추적</h2><div class="table-wrap"><table><thead><tr><th>식별자</th><th>구분</th><th>주장</th><th>신뢰도</th><th>출처</th></tr></thead><tbody><tr><td><code>nflx-tech-001</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">2026년 8월 28일 정규장 종가는 81.72달러로 전 거래일보다 2.36% 상승했고 시가 80.355달러·고가 82.3535달러·저가 79.95달러·거래량 29,092,685주였다.</td><td>99%</td><td><a href="https://chartexchange.com/symbol/nasdaq-nflx/historical/" target="_blank" rel="noreferrer">nflx-src-price</a></td></tr><tr><td><code>nflx-tech-002</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">8월 28일까지 최근 5거래일 종가 단순평균은 81.05달러, 20거래일 종가 단순평균은 77.48달러이며 종가 81.72달러는 각각 0.8%와 5.5% 웃돈다.</td><td>98%</td><td><a href="https://chartexchange.com/symbol/nasdaq-nflx/historical/" target="_blank" rel="noreferrer">nflx-src-price</a></td></tr><tr><td><code>nflx-tech-003</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">최근 20거래일 장중 범위는 72.18~82.455달러이고 8월 28일 종가는 상단에서 0.9% 아래다. 82.46달러 종가 돌파와 77.48달러 20일 평균 지지 여부가 1~3개월 방향 확인점이라는 추론이다.</td><td>95%</td><td><a href="https://chartexchange.com/symbol/nasdaq-nflx/historical/" target="_blank" rel="noreferrer">nflx-src-price</a></td></tr><tr><td><code>nflx-fund-001</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">2026년 2분기 매출은 125억6,000만달러로 전년 동기 대비 13.4%, 영업이익은 41억9,300만달러로 11%, 순이익은 34억100만달러로 9% 증가했다.</td><td>99%</td><td><a href="https://www.sec.gov/Archives/edgar/data/1065280/000106528026000211/ex991_q226.htm" target="_blank" rel="noreferrer">nflx-src-letter</a></td></tr><tr><td><code>nflx-fund-002</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">2분기 영업이익률은 33.4%로 전년 동기 34.1%보다 0.7%포인트 낮았고, 잉여현금흐름은 15억2,500만달러로 전년 동기 22억6,700만달러보다 감소했다.</td><td>99%</td><td><a href="https://www.sec.gov/Archives/edgar/data/1065280/000106528026000211/ex991_q226.htm" target="_blank" rel="noreferrer">nflx-src-letter</a></td></tr><tr><td><code>nflx-news-001</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">회사는 3분기 매출 128억6,000만달러와 영업이익률 33.2%를 전망했고, 2026년 연간 매출 전망을 510억~514억달러로 좁히면서 연간 영업이익률 31.5% 전망을 유지했다.</td><td>99%</td><td><a href="https://www.sec.gov/Archives/edgar/data/1065280/000106528026000211/ex991_q226.htm" target="_blank" rel="noreferrer">nflx-src-letter</a></td></tr><tr><td><code>nflx-news-002</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">회사는 2026년 광고 매출이 약 30억달러로 두 배가량 늘 것으로 예상했지만 이는 회사의 미래 전망이며 실제 달성치는 아직 확정되지 않았다.</td><td>97%</td><td><a href="https://www.sec.gov/Archives/edgar/data/1065280/000106528026000211/ex991_q226.htm" target="_blank" rel="noreferrer">nflx-src-letter</a></td></tr><tr><td><code>nflx-risk-001</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">광고 수익화와 가격 인상이 기대에 못 미치거나 콘텐츠 상각비·현금지출 부담이 커지면 현재의 매출 성장과 높은 이익률이 동시에 약해질 수 있다는 추론이다.</td><td>92%</td><td><a href="https://www.sec.gov/Archives/edgar/data/1065280/000106528026000211/ex991_q226.htm" target="_blank" rel="noreferrer">nflx-src-letter</a></td></tr><tr><td><code>nflx-syn-001</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">주가는 20일 평균 위에서 최근 범위 상단에 접근했고 매출·영업이익도 성장했지만, 전년 대비 이익률과 잉여현금흐름 감소 및 3분기 성장률 둔화 전망 때문에 1~3개월 평가는 조건부 긍정이다.</td><td>93%</td><td><a href="https://chartexchange.com/symbol/nasdaq-nflx/historical/" target="_blank" rel="noreferrer">nflx-src-price</a>, <a href="https://www.sec.gov/Archives/edgar/data/1065280/000106528026000211/ex991_q226.htm" target="_blank" rel="noreferrer">nflx-src-letter</a></td></tr></tbody></table></div></section>
+    <section><p class="eyebrow">근거 자료</p><h2>출처 목록</h2><ol class="sources"><li><a href="https://chartexchange.com/symbol/nasdaq-nflx/historical/" target="_blank" rel="noreferrer">차트익스체인지 - 넷플릭스 정규장 일별 시세</a><span><code>nflx-src-price</code> · 독립 시장 데이터 제공사 · 2026-08-28T16:00:00-04:00</span></li><li><a href="https://www.sec.gov/Archives/edgar/data/1065280/000106528026000211/ex991_q226.htm" target="_blank" rel="noreferrer">넷플릭스 2026년 2분기 주주서한</a><span><code>nflx-src-letter</code> · 기업 공식 실적자료·미국 증권거래위원회 첨부 · 2026-07-16T16:03:19-04:00</span></li></ol></section>
+    <footer><span>분석 근거 스키마 1.1 · 결정적 보고서</span><span>주문 실행 없음 · 개인화된 투자 조언 아님</span></footer>
+  </main>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f3f0e7">
+  <title>BE 주식 분석</title>
+  <style>
+    :root {
+      --paper:#f3f0e7; --raised:#faf8f2; --ink:#181a17; --soft:#3f433e;
+      --muted:#6b6f68; --line:#cbc7bb; --strong:#7f827b; --green:#174f3a;
+      --green-pale:#e4ede7; --amber:#765817; --red:#963a31;
+      --display:AppleMyungjo,"Noto Serif KR","Nanum Myeongjo",Georgia,serif;
+      --body:Pretendard,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+      --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; color:var(--ink); background:var(--paper); font-family:var(--body); line-height:1.68; word-break:keep-all; -webkit-font-smoothing:antialiased; }
+    a { color:var(--green); text-underline-offset:3px; }
+    a:focus-visible { outline:3px solid var(--green); outline-offset:3px; }
+    h1,h2,h3,h4,p { margin-top:0; }
+    .page { width:min(1180px,calc(100% - 44px)); margin:0 auto 64px; }
+    .report-brand { min-height:68px; display:flex; justify-content:space-between; gap:20px; align-items:center; border-bottom:1px solid var(--ink); color:var(--muted); font:600 10px/1.3 var(--mono); }
+    .report-brand strong { color:var(--ink); font-family:var(--body); font-size:13px; letter-spacing:-.02em; }
+    .report-head { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:56px; align-items:end; padding:64px 0 46px; border-bottom:1px solid var(--ink); }
+    h1 { margin-bottom:14px; font:600 clamp(58px,9vw,108px)/.88 var(--display); letter-spacing:-.07em; }
+    h2 { margin-bottom:21px; font:600 clamp(31px,4vw,46px)/1.08 var(--display); letter-spacing:-.04em; }
+    h3 { font:600 24px/1.25 var(--display); }
+    h4 { margin:21px 0 8px; font:700 10px/1.3 var(--mono); letter-spacing:.06em; }
+    .eyebrow,.kicker { color:var(--green); font:750 10px/1.3 var(--mono); letter-spacing:.07em; }
+    .meta { padding:20px 0; border-top:2px solid var(--ink); border-bottom:1px solid var(--line); }
+    .meta span { display:block; color:var(--muted); font-size:10px; }
+    .meta strong { display:block; margin:6px 0; font:600 19px/1.3 var(--display); overflow-wrap:anywhere; }
+    section { padding:58px 0; border-bottom:1px solid var(--ink); }
+    .overview { display:grid; grid-template-columns:repeat(3,1fr); border-top:2px solid var(--ink); border-bottom:1px solid var(--line); }
+    .overview div { padding:20px; border-right:1px solid var(--line); }
+    .overview div:last-child { border-right:0; }
+    .overview strong { display:block; font:600 30px/1.1 var(--display); }
+    .overview span { color:var(--muted); font-size:11px; }
+    .lanes,.scenarios { display:grid; grid-template-columns:repeat(3,1fr); border-top:2px solid var(--ink); border-bottom:1px solid var(--line); }
+    .lane,.scenario { min-width:0; padding:23px; border-right:1px solid var(--line); }
+    .lane:last-child,.scenario:last-child { border-right:0; }
+    .lane strong { display:block; margin-top:24px; font:600 34px/1 var(--display); }
+    .lane small { color:var(--muted); }
+    .status,.kind { display:inline-block; padding:2px 6px; border:1px solid currentColor; font:700 9px/1.5 var(--mono); text-transform:uppercase; }
+    .status.complete,.kind.fact { color:var(--green); }
+    .status.omitted,.kind.inference { color:var(--amber); }
+    .scenario { min-height:410px; border-top:5px solid var(--strong); }
+    .scenario.bull { border-top-color:var(--green); }
+    .scenario.base { border-top-color:var(--soft); }
+    .scenario.bear { border-top-color:var(--red); }
+    .scenario .thesis { min-height:105px; font-size:16px; }
+    .scenario li { margin-bottom:7px; }
+    .refs,.muted,.empty { color:var(--muted); font-size:11px; }
+    .split { display:grid; grid-template-columns:1fr 1fr; gap:52px; }
+    ul { padding-left:20px; }
+    table { width:100%; border-collapse:collapse; font-size:12px; }
+    th,td { padding:12px 10px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { border-top:2px solid var(--ink); color:var(--muted); font:700 9px/1.3 var(--mono); }
+    .claim-text { min-width:340px; }
+    code { font-family:var(--mono); font-size:.9em; }
+    .table-wrap { overflow-x:auto; }
+    .sources { display:grid; grid-template-columns:repeat(2,1fr); gap:0 34px; padding:0; border-top:2px solid var(--ink); list-style:none; }
+    .sources li { padding:14px 0; border-bottom:1px solid var(--line); }
+    .sources span { display:block; color:var(--muted); font-size:11px; }
+    .analyst-report { padding-top:0; }
+    .analyst-report > .eyebrow { margin-top:55px; }
+    .analyst-lead { position:relative; padding:39px 42px 43px; color:var(--raised); background:var(--ink); }
+    .analyst-lead::before { position:absolute; inset:0 auto 0 0; width:6px; background:var(--green); content:""; }
+    .analyst-lead h3 { max-width:920px; margin:23px 0 0; font-size:clamp(31px,4.4vw,50px); letter-spacing:-.045em; }
+    .analyst-lead > p { max-width:900px; margin:19px 0 0; color:#c9ccc5; font-size:15px; }
+    .analyst-verdict { display:flex; flex-wrap:wrap; gap:8px; }
+    .analyst-verdict span { padding:5px 8px; border:1px solid #6f736c; color:#d8dbd4; font-size:10px; font-weight:700; }
+    .analyst-verdict .stance { border-color:#9bc4ad; color:#c7e5d3; }
+    .key-points { display:grid; grid-template-columns:repeat(3,1fr); border:1px solid var(--ink); border-top:0; }
+    .key-point { min-width:0; padding:24px; border-right:1px solid var(--line); }
+    .key-point:last-child { border-right:0; }
+    .key-point .number,.monitoring .number { color:var(--green); font:800 10px/1 var(--mono); }
+    .key-point h3 { margin:11px 0 9px; font-size:18px; }
+    .key-point p,.perspective p,.monitoring p { margin:0; color:var(--soft); font-size:13px; }
+    .analyst-refs { display:flex; flex-wrap:wrap; gap:5px; margin-top:14px; color:var(--muted); font:600 9px/1.5 var(--mono); }
+    .report-subhead { display:flex; justify-content:space-between; gap:20px; align-items:end; margin:38px 0 14px; }
+    .report-subhead h3,.report-subhead p { margin:0; }
+    .report-subhead h3 { font-size:24px; }
+    .report-subhead p { color:var(--muted); font-size:11px; }
+    .perspectives { display:grid; grid-template-columns:1fr 1fr; border-top:2px solid var(--ink); }
+    .perspective { min-width:0; padding:21px; border-right:1px solid var(--line); border-bottom:1px solid var(--line); border-left:4px solid var(--strong); }
+    .perspective:nth-child(even) { border-right:0; }
+    .perspective.impact-supportive { border-left-color:var(--green); }
+    .perspective.impact-mixed { border-left-color:var(--amber); }
+    .perspective.impact-cautionary { border-left-color:var(--red); }
+    .perspective header { display:flex; justify-content:space-between; gap:14px; padding:0; border:0; }
+    .perspective h3 { margin:0; font-size:16px; }
+    .perspective header span { color:var(--muted); font-size:9px; font-weight:700; }
+    .perspective p { margin-top:12px; }
+    .monitoring { margin:0; padding:0; border-top:2px solid var(--ink); list-style:none; }
+    .monitoring li { display:grid; grid-template-columns:42px minmax(0,1fr) minmax(170px,.35fr); gap:17px; padding:19px 0; border-bottom:1px solid var(--line); }
+    .monitoring h3 { margin:0 0 6px; font-size:16px; }
+    .monitoring .analyst-refs { justify-content:flex-end; margin-top:2px; }
+    .final-assessment { margin-top:38px; padding:23px 26px; border-left:5px solid var(--green); background:var(--green-pale); }
+    .final-assessment > span { color:var(--green); font:800 10px/1 var(--mono); }
+    .final-assessment > p { margin:8px 0 0; font-size:16px; font-weight:650; }
+    footer { display:flex; justify-content:space-between; gap:20px; padding:23px 0; color:var(--muted); font:500 10px/1.4 var(--mono); }
+    @keyframes reveal { from { opacity:0; transform:translateY(9px); } to { opacity:1; transform:translateY(0); } }
+    .report-head,.page > section { animation:reveal 420ms cubic-bezier(.2,.8,.2,1) both; }
+    .page > section:nth-of-type(1) { animation-delay:60ms; }
+    @media (max-width:820px) {
+      .page { width:min(100% - 28px,1180px); }
+      .report-brand { min-height:62px; align-items:flex-start; flex-direction:column; justify-content:center; gap:3px; }
+      .report-head,.split { grid-template-columns:1fr; }
+      .report-head { gap:30px; padding:45px 0 34px; }
+      .overview,.lanes,.scenarios,.sources,.key-points,.perspectives { grid-template-columns:1fr; }
+      .overview div,.lane,.scenario,.key-point,.perspective { border-right:0; border-bottom:1px solid var(--line); }
+      .overview div:last-child,.lane:last-child,.scenario:last-child,.key-point:last-child { border-bottom:0; }
+      section { padding:46px 0; }
+      .scenario { min-height:0; }
+      .analyst-report > .eyebrow { margin-top:45px; }
+      .analyst-lead { padding:29px 22px 31px 28px; }
+      .report-subhead { align-items:start; flex-direction:column; gap:4px; }
+      .monitoring li { grid-template-columns:27px 1fr; gap:8px; }
+      .monitoring .analyst-refs { grid-column:2; justify-content:flex-start; }
+      .final-assessment { padding:21px 18px; }
+      footer { align-items:flex-start; flex-direction:column; gap:7px; }
+    }
+    @media print {
+      body { background:white; }
+      .page { width:100%; margin:0; }
+      .report-brand { min-height:42px; }
+      .scenario,.lane,.key-point { break-inside:avoid; }
+      a { color:inherit; text-decoration:none; }
+    }
+    @media (prefers-reduced-motion:reduce) {
+      *,*::before,*::after { scroll-behavior:auto!important; animation:none!important; transition:none!important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="report-brand"><strong>나의 주식 분석</strong><span>수석 애널리스트 보고서 · 읽기 전용</span></div>
+    <header class="report-head">
+      <div><p class="eyebrow">검증된 주식 분석 · NYSE</p><h1>BE</h1><p>일봉 · 1~3개월 · 미국 달러</p></div>
+      <aside class="meta"><span>분석 기준 시각</span><strong>2026-08-21T16:00:00-04:00</strong><span>실행 기록 · 20260821-BE-daily</span></aside>
+    </header>
+
+    <section class="analyst-report"><p class="eyebrow">수석 애널리스트 브리핑</p><h2>종합 의견</h2><article class="analyst-lead"><div class="analyst-verdict"><span class="stance stance-balanced">현재 판단 · 균형</span><span>확신 수준 · 보통</span></div><h3>실적과 전망은 강하지만 212달러 회복 전까지 가격 위험이 우세하다</h3><p>블룸에너지는 2분기 매출이 165.5% 늘고 매출총이익률이 개선됐으며 연간 매출 전망도 상향했다. 반면 8월 21일 종가 201.45달러는 20일 평균 211.88달러 아래이고 최근 나흘간 낙폭도 컸다. 스칸듐 공급망 관련 집단소송의 원고 주장과 회사 반박도 충돌한다. 1~3개월에는 195~200달러 지지, 212달러 회복, 프로젝트 실행과 공급망 근거를 함께 확인해야 한다.</p></article><div class="key-points"><article class="key-point"><span class="number">01</span><h3>성장과 수익성이 동시에 개선됐다</h3><p>기록적인 매출 성장과 매출총이익률 개선은 펀더멘털 전환을 뒷받침한다.</p><div class="analyst-refs">근거 <code>be-fund-001</code> <code>be-fund-002</code></div></article><article class="key-point"><span class="number">02</span><h3>연간 전망과 설치 혁신은 실행을 전제로 한다</h3><p>39억~42억달러 매출 전망과 파워 커넥트의 설치 단축 목표는 강하지만 프로젝트 승인·생산·설치 현장에서 검증돼야 한다.</p><div class="analyst-refs">근거 <code>be-news-001</code> <code>be-news-004</code> <code>be-risk-001</code></div></article><article class="key-point"><span class="number">03</span><h3>공급망 주장과 회사 반박이 충돌한다</h3><p>집단소송은 중국산 스칸듐 의존 은폐를 주장하지만 회사는 공식 공시로 공급 충분성과 중국 비의존을 반박했다. 법원 판단 전에는 어느 한쪽을 확정 사실로 볼 수 없다.</p><div class="analyst-refs">근거 <code>be-news-002</code> <code>be-news-003</code></div></article><article class="key-point"><span class="number">04</span><h3>가격은 20일 평균 아래다</h3><p>201.45달러 종가는 211.88달러 20일 평균 아래이고 최근 하락 속도도 빨랐다.</p><div class="analyst-refs">근거 <code>be-tech-001</code> <code>be-tech-002</code> <code>be-tech-003</code></div></article></div><div class="report-subhead"><h3>관점별 종합</h3><p>각 분석이 최종 판단에 미친 영향입니다.</p></div><div class="perspectives"><article class="perspective impact-cautionary"><header><h3>기술적 관점</h3><span>주의 요인</span></header><p>195~200달러 지지와 211.88달러 회복이 확인되기 전에는 단기 하락 위험이 남는다.</p><div class="analyst-refs">근거 <code>be-tech-002</code> <code>be-tech-003</code></div></article><article class="perspective impact-supportive"><header><h3>펀더멘털 관점</h3><span>긍정 기여</span></header><p>매출 성장과 마진 개선은 사업 체력의 뚜렷한 개선을 보여준다.</p><div class="analyst-refs">근거 <code>be-fund-001</code> <code>be-fund-002</code></div></article><article class="perspective impact-mixed"><header><h3>뉴스·시장 관점</h3><span>혼재</span></header><p>연간 매출 전망 상향과 파워 커넥트 공개는 우호적이지만 설치 단축 효과가 아직 회사 목표이고 스칸듐 공급망 관련 집단소송과 회사 반박도 충돌한다.</p><div class="analyst-refs">근거 <code>be-news-001</code> <code>be-news-002</code> <code>be-news-003</code> <code>be-news-004</code></div></article><article class="perspective impact-cautionary"><header><h3>반대 관점</h3><span>주의 요인</span></header><p>대형 프로젝트 실행 차질과 스칸듐 공급망 관련 법적 분쟁은 높아진 기대와 가격 변동성을 동시에 악화시킬 수 있다.</p><div class="analyst-refs">근거 <code>be-risk-001</code> <code>be-tech-003</code> <code>be-news-002</code> <code>be-news-003</code></div></article></div><div class="report-subhead"><h3>판단을 바꿀 신호</h3><p>다음 분석에서 우선 확인할 항목입니다.</p></div><ol class="monitoring"><li><span class="number">01</span><div><h3>195~200달러 지지</h3><p>8월 21일 저가 부근을 지키면 급락의 진정 가능성이 높아진다.</p></div><div class="analyst-refs">근거 <code>be-tech-001</code> <code>be-tech-003</code></div></li><li><span class="number">02</span><div><h3>211.88달러 20일 평균 회복</h3><p>이 평균을 종가 기준 회복해야 단기 추세가 다시 중립 이상으로 개선된다.</p></div><div class="analyst-refs">근거 <code>be-tech-002</code> <code>be-tech-003</code></div></li><li><span class="number">03</span><div><h3>39억~42억달러 전망을 뒷받침하는 납품</h3><p>후속 프로젝트와 납품 일정이 확인돼야 공식 전망의 실행 가능성이 높아진다.</p></div><div class="analyst-refs">근거 <code>be-news-001</code> <code>be-risk-001</code></div></li><li><span class="number">04</span><div><h3>스칸듐 공급망 관련 소송과 추가 공시</h3><p>독립적으로 검증된 공급 자료나 법원 판단이 나오기 전에는 원고 주장과 회사 반박의 충돌을 핵심 위험으로 유지해야 한다.</p></div><div class="analyst-refs">근거 <code>be-news-002</code> <code>be-news-003</code></div></li><li><span class="number">05</span><div><h3>파워 커넥트의 실제 설치 기간</h3><p>첫 프로젝트의 현장 설치 자료가 회사가 제시한 40% 이상 단축 목표를 입증하는지 확인해야 한다.</p></div><div class="analyst-refs">근거 <code>be-news-004</code> <code>be-risk-001</code></div></li></ol><aside class="final-assessment"><span>최종 판단</span><p>펀더멘털 개선은 뚜렷하지만 가격 추세는 이를 확인하지 못했고 스칸듐 공급망 관련 법적 주장도 미해결 상태다. 1~3개월에는 195~200달러 지지, 211.88달러 회복과 독립적인 공급망 확인 전까지 신중한 균형 평가가 타당하다.</p><div class="analyst-refs">근거 <code>be-syn-001</code> <code>be-tech-003</code> <code>be-fund-001</code> <code>be-news-002</code> <code>be-news-003</code></div></aside></section>
+
+    <section>
+      <p class="eyebrow">검증 요약</p><h2>검증을 통과한 분석</h2>
+      <div class="overview"><div><strong>6</strong><span>출처</span></div><div><strong>11</strong><span>원자 주장</span></div><div><strong>통과</strong><span>반대 검토 · 2026-08-24T12:26:39+09:00</span></div></div>
+    </section>
+
+    <section><p class="eyebrow">독립 분석 영역</p><h2>세 개의 독립 분석</h2><div class="lanes"><article class="lane"><span class="status complete">완료</span><h3>기술</h3><strong>3</strong><small>개 주장 · 사실 2 · 추론 1</small></article><article class="lane"><span class="status complete">완료</span><h3>펀더멘털</h3><strong>3</strong><small>개 주장 · 사실 2 · 추론 1</small></article><article class="lane"><span class="status complete">완료</span><h3>뉴스</h3><strong>4</strong><small>개 주장 · 사실 4 · 추론 0</small></article></div></section>
+    <section><p class="eyebrow">조건별 시나리오</p><h2>상승·기준·하락 경로</h2><div class="scenarios"><article class="scenario bull"><p class="kicker">상승 시나리오</p><h3>상승</h3><p class="thesis">상향 전망과 설치 혁신이 실제 납품으로 확인되고 주가가 20일 평균을 회복한다.</p><h4>확인 조건</h4><ul><li>195~200달러 지지가 유지된다</li><li>211.88달러 20일 평균을 종가 기준 회복한다</li><li>연간 전망을 뒷받침하는 납품·설치 단축과 공급망 우려 완화가 확인된다</li></ul><h4>무효화</h4><p>195달러를 지속 이탈하거나 주요 프로젝트 지연·전망 하향·공급망 주장의 확인이 발생하면 무효다.</p><p class="refs">근거 주장: be-tech-002, be-tech-003, be-news-001, be-risk-001, be-news-002, be-news-003, be-news-004</p></article><article class="scenario base"><p class="kicker">기준 시나리오</p><h3>기준</h3><p class="thesis">강한 실적과 약한 가격 추세가 균형을 이루며 195~212달러에서 실행 증거를 기다린다.</p><h4>확인 조건</h4><ul><li>195달러 저가가 지지된다</li><li>211.88달러 아래에서 변동성이 완화된다</li><li>연간 전망이 유지된다</li></ul><h4>무효화</h4><p>211.88달러를 회복하거나 195달러를 거래량 증가와 함께 이탈하면 범위 가정은 무효다.</p><p class="refs">근거 주장: be-tech-002, be-tech-003, be-news-001, be-syn-001</p></article><article class="scenario bear"><p class="kicker">하락 시나리오</p><h3>하락</h3><p class="thesis">프로젝트 실행·공급망 우려와 가격 약세가 겹쳐 195달러 아래로 조정이 확대된다.</p><h4>확인 조건</h4><ul><li>195달러를 종가 기준 이탈한다</li><li>20일 평균 회복 시도가 반복 실패한다</li><li>프로젝트 지연·전망 하향 또는 스칸듐 공급 차질이 독립적으로 확인된다</li></ul><h4>무효화</h4><p>211.88달러를 회복하고 상향 전망을 뒷받침하는 납품과 공급망 안정 근거가 확인되면 무효다.</p><p class="refs">근거 주장: be-tech-002, be-tech-003, be-risk-001, be-news-002, be-news-003</p></article></div></section>
+
+    <section>
+      <div class="split">
+        <div><p class="eyebrow">반대 근거</p><h2>충돌하는 증거</h2><ul><li>매출·마진과 연간 전망은 강하지만 주가는 20일 평균 아래이고 최근 나흘간 낙폭이 컸다. 관련 근거: be-fund-001, be-fund-002, be-news-001, be-tech-002, be-tech-003.</li><li>대형 프로젝트 수요는 성장 기회인 동시에 승인·생산·설치 일정의 실행 위험을 키운다. 관련 근거: be-news-001, be-risk-001.</li><li>원고 측은 중국산 스칸듐 의존 은폐를 주장하지만 회사는 공식 공시에서 충분한 공급과 중국 비의존을 주장해 핵심 공급망 사실이 충돌한다. 관련 근거: be-news-002, be-news-003.</li><li>파워 커넥트의 40% 이상 설치 단축은 회사가 제시한 목표이며 실제 프로젝트 성과로 독립 검증되지 않았다. 관련 근거: be-news-004.</li></ul></div>
+        <div><p class="eyebrow">분석 공백</p><h2>판단의 한계</h2><ul><li>20일 평균은 독립 시세 자료로 재계산하고 별도 기술 데이터 제공사와 교차검증했지만 거래량은 제공사별로 차이가 날 수 있다.</li><li>8월 21일 이후 장외·주말·8월 24일 장중 데이터는 사용하지 않았다.</li><li>고객별 계약 물량과 설치 일정은 공개 자료가 제한적이라 공식 연간 전망을 확정 실적으로 간주하지 않았다.</li><li>스칸듐 공급망 관련 집단소송은 제기 단계이며 원고 주장과 회사 반박 중 어느 쪽도 법원 판단으로 확정되지 않았다.</li><li>파워 커넥트의 설치 기간 단축 수치는 회사 발표이며 실제 고객 프로젝트의 독립 검증 자료가 아직 없다.</li><li>이 자료는 정보 제공용 연구이며 개인화된 투자 조언, 매수·매도 제안 또는 주문 지시가 아니다.</li></ul></div>
+      </div>
+    </section>
+
+    <section><p class="eyebrow">원자 주장</p><h2>주장과 출처 추적</h2><div class="table-wrap"><table><thead><tr><th>식별자</th><th>구분</th><th>주장</th><th>신뢰도</th><th>출처</th></tr></thead><tbody><tr><td><code>be-tech-001</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">2026년 8월 21일 정규장 종가는 201.45달러로 전 거래일보다 0.51% 하락했고 시가 206.22달러·고가 207.88달러·저가 195.68달러였다.</td><td>99%</td><td><a href="https://www.financecharts.com/stocks/BE/summary/price" target="_blank" rel="noreferrer">be-src-price</a></td></tr><tr><td><code>be-tech-002</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">8월 21일까지 최근 20거래일 종가의 단순 평균은 211.88달러이며 종가 201.45달러는 이를 4.9% 밑돈다. 독립 기술 자료의 20일 단순이동평균도 211.8825달러로 일치한다.</td><td>99%</td><td><a href="https://www.financecharts.com/stocks/BE/summary/price" target="_blank" rel="noreferrer">be-src-price</a>, <a href="https://www.fxempire.com/stocks/be/technical-analysis" target="_blank" rel="noreferrer">be-src-tech</a></td></tr><tr><td><code>be-tech-003</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">8월 12일 장중 고점 249.99달러 이후 8월 21일 저가 195.68달러까지 변동 폭이 확대됐고, 8월 17일 종가 232.16달러에서 나흘 만에 13.2% 하락했다. 195~200달러 지지와 212달러 회복이 단기 분기점이라는 추론이다.</td><td>96%</td><td><a href="https://www.financecharts.com/stocks/BE/summary/price" target="_blank" rel="noreferrer">be-src-price</a></td></tr><tr><td><code>be-fund-001</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">2026년 2분기 매출은 10억6,536만달러로 전년 동기 대비 165.5% 증가했고 제품 매출은 215.4% 늘었다.</td><td>99%</td><td><a href="https://investor.bloomenergy.com/press-releases/press-release-details/2026/Bloom-Energy-Reports-Record-Second-Quarter-2026-Financial-Results-and-Raises-Full-Year-2026-Guidance/default.aspx" target="_blank" rel="noreferrer">be-src-q2</a></td></tr><tr><td><code>be-fund-002</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">2분기 일반회계기준 매출총이익률은 33.4%로 전년 동기 26.7%보다 6.68%포인트 개선됐고 비일반회계기준 영업이익은 2억3,964만달러였다.</td><td>99%</td><td><a href="https://investor.bloomenergy.com/press-releases/press-release-details/2026/Bloom-Energy-Reports-Record-Second-Quarter-2026-Financial-Results-and-Raises-Full-Year-2026-Guidance/default.aspx" target="_blank" rel="noreferrer">be-src-q2</a></td></tr><tr><td><code>be-news-001</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">회사는 2026년 연간 매출 전망을 39억~42억달러로 상향했으며, 중간값 기준 전년 대비 약 100% 성장을 뜻한다고 설명했다.</td><td>99%</td><td><a href="https://investor.bloomenergy.com/press-releases/press-release-details/2026/Bloom-Energy-Reports-Record-Second-Quarter-2026-Financial-Results-and-Raises-Full-Year-2026-Guidance/default.aspx" target="_blank" rel="noreferrer">be-src-q2</a></td></tr><tr><td><code>be-risk-001</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">상향된 전망을 달성하려면 대형 프로젝트의 고객 승인, 생산능력 확대, 설치 일정과 공급망을 계획대로 실행해야 하므로 실적 성장과 실행 위험이 동시에 크다는 추론이다.</td><td>92%</td><td><a href="https://investor.bloomenergy.com/press-releases/press-release-details/2026/Bloom-Energy-Reports-Record-Second-Quarter-2026-Financial-Results-and-Raises-Full-Year-2026-Guidance/default.aspx" target="_blank" rel="noreferrer">be-src-q2</a></td></tr><tr><td><code>be-news-002</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">7월 30일 제기된 증권 집단소송은 블룸에너지가 중국산 스칸듐 공급 의존도를 충분히 알리지 않았다는 공매도 보고서의 주장을 토대로 한다. 이는 원고 측의 미확정 주장이고 법원의 판단은 아직 나오지 않았다.</td><td>95%</td><td><a href="https://news.bloomberglaw.com/securities-law/bloom-energy-investor-sues-over-short-sellers-china-accusations" target="_blank" rel="noreferrer">be-src-lawsuit</a></td></tr><tr><td><code>be-news-003</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">블룸에너지는 7월 9일 미국 증권거래위원회 공시에서 공매도 보고서의 회계·스칸듐 공급망 결론을 부인하고, 현재 수요와 수주잔고를 충족할 공급을 확보했으며 중국에 의존하지 않는다고 밝혔다.</td><td>99%</td><td><a href="https://www.sec.gov/Archives/edgar/data/1664703/000162828026047734/be-20260709.htm" target="_blank" rel="noreferrer">be-src-response</a></td></tr><tr><td><code>be-news-004</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">블룸에너지는 8월 19일 핵심 전기 통합 작업을 현장에서 공장으로 옮겨 현장 전력 설치 시간을 40% 이상 줄이는 것을 목표로 한 파워 커넥트 시스템을 공개했다. 40% 수치는 회사가 제시한 목표이며 독립적인 운영 실적은 아직 확인되지 않았다.</td><td>94%</td><td><a href="https://www.publicnow.com/view/64FA7D73C7DCF5640B1CE9617FFBD8EAF2189734" target="_blank" rel="noreferrer">be-src-power-connect</a></td></tr><tr><td><code>be-syn-001</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">기록적인 매출·마진과 연간 전망 상향은 강하지만, 주가가 20일 평균 아래로 밀리고 최근 변동성이 확대돼 1~3개월 평가는 신중한 균형이다.</td><td>93%</td><td><a href="https://www.financecharts.com/stocks/BE/summary/price" target="_blank" rel="noreferrer">be-src-price</a>, <a href="https://www.fxempire.com/stocks/be/technical-analysis" target="_blank" rel="noreferrer">be-src-tech</a>, <a href="https://investor.bloomenergy.com/press-releases/press-release-details/2026/Bloom-Energy-Reports-Record-Second-Quarter-2026-Financial-Results-and-Raises-Full-Year-2026-Guidance/default.aspx" target="_blank" rel="noreferrer">be-src-q2</a></td></tr></tbody></table></div></section>
+    <section><p class="eyebrow">근거 자료</p><h2>출처 목록</h2><ol class="sources"><li><a href="https://www.financecharts.com/stocks/BE/summary/price" target="_blank" rel="noreferrer">파이낸스차트 - 블룸에너지 일별 정규장 시세</a><span><code>be-src-price</code> · 독립 시장 데이터 제공사 · 2026-08-21T16:00:00-04:00</span></li><li><a href="https://www.fxempire.com/stocks/be/technical-analysis" target="_blank" rel="noreferrer">에프엑스엠파이어 - 블룸에너지 일봉 기술 통계</a><span><code>be-src-tech</code> · 독립 기술 데이터 제공사 · 2026-08-21T16:00:00-04:00</span></li><li><a href="https://investor.bloomenergy.com/press-releases/press-release-details/2026/Bloom-Energy-Reports-Record-Second-Quarter-2026-Financial-Results-and-Raises-Full-Year-2026-Guidance/default.aspx" target="_blank" rel="noreferrer">블룸에너지 2026년 2분기 실적과 연간 전망 상향 발표</a><span><code>be-src-q2</code> · 기업 공식 실적자료 · 2026-07-28T16:00:00-04:00</span></li><li><a href="https://www.sec.gov/Archives/edgar/data/1664703/000162828026047734/be-20260709.htm" target="_blank" rel="noreferrer">미국 증권거래위원회 공시 - 블룸에너지의 스칸듐 공급망 관련 반박</a><span><code>be-src-response</code> · 미국 증권거래위원회 공시 · 2026-07-09T08:17:17-04:00</span></li><li><a href="https://news.bloomberglaw.com/securities-law/bloom-energy-investor-sues-over-short-sellers-china-accusations" target="_blank" rel="noreferrer">블룸에너지 투자자, 공매도 보고서의 중국 공급망 주장과 관련해 소송 제기</a><span><code>be-src-lawsuit</code> · 독립 법률 보도 · 2026-07-31T15:39:00Z</span></li><li><a href="https://www.publicnow.com/view/64FA7D73C7DCF5640B1CE9617FFBD8EAF2189734" target="_blank" rel="noreferrer">블룸에너지, 현장 설치 시간을 40% 이상 줄이는 파워 커넥트 공개</a><span><code>be-src-power-connect</code> · 기업 보도자료 배포본 · 2026-08-19T09:00:00-04:00</span></li></ol></section>
+    <footer><span>분석 근거 스키마 1.1 · 결정적 보고서</span><span>주문 실행 없음 · 개인화된 투자 조언 아님</span></footer>
+  </main>
+</body>
+</html>

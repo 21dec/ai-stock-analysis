@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f3f0e7">
+  <title>035720 주식 분석</title>
+  <style>
+    :root {
+      --paper:#f3f0e7; --raised:#faf8f2; --ink:#181a17; --soft:#3f433e;
+      --muted:#6b6f68; --line:#cbc7bb; --strong:#7f827b; --green:#174f3a;
+      --green-pale:#e4ede7; --amber:#765817; --red:#963a31;
+      --display:AppleMyungjo,"Noto Serif KR","Nanum Myeongjo",Georgia,serif;
+      --body:Pretendard,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+      --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; color:var(--ink); background:var(--paper); font-family:var(--body); line-height:1.68; word-break:keep-all; -webkit-font-smoothing:antialiased; }
+    a { color:var(--green); text-underline-offset:3px; }
+    a:focus-visible { outline:3px solid var(--green); outline-offset:3px; }
+    h1,h2,h3,h4,p { margin-top:0; }
+    .page { width:min(1180px,calc(100% - 44px)); margin:0 auto 64px; }
+    .report-brand { min-height:68px; display:flex; justify-content:space-between; gap:20px; align-items:center; border-bottom:1px solid var(--ink); color:var(--muted); font:600 10px/1.3 var(--mono); }
+    .report-brand strong { color:var(--ink); font-family:var(--body); font-size:13px; letter-spacing:-.02em; }
+    .report-head { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:56px; align-items:end; padding:64px 0 46px; border-bottom:1px solid var(--ink); }
+    h1 { margin-bottom:14px; font:600 clamp(58px,9vw,108px)/.88 var(--display); letter-spacing:-.07em; }
+    h2 { margin-bottom:21px; font:600 clamp(31px,4vw,46px)/1.08 var(--display); letter-spacing:-.04em; }
+    h3 { font:600 24px/1.25 var(--display); }
+    h4 { margin:21px 0 8px; font:700 10px/1.3 var(--mono); letter-spacing:.06em; }
+    .eyebrow,.kicker { color:var(--green); font:750 10px/1.3 var(--mono); letter-spacing:.07em; }
+    .meta { padding:20px 0; border-top:2px solid var(--ink); border-bottom:1px solid var(--line); }
+    .meta span { display:block; color:var(--muted); font-size:10px; }
+    .meta strong { display:block; margin:6px 0; font:600 19px/1.3 var(--display); overflow-wrap:anywhere; }
+    section { padding:58px 0; border-bottom:1px solid var(--ink); }
+    .overview { display:grid; grid-template-columns:repeat(3,1fr); border-top:2px solid var(--ink); border-bottom:1px solid var(--line); }
+    .overview div { padding:20px; border-right:1px solid var(--line); }
+    .overview div:last-child { border-right:0; }
+    .overview strong { display:block; font:600 30px/1.1 var(--display); }
+    .overview span { color:var(--muted); font-size:11px; }
+    .lanes,.scenarios { display:grid; grid-template-columns:repeat(3,1fr); border-top:2px solid var(--ink); border-bottom:1px solid var(--line); }
+    .lane,.scenario { min-width:0; padding:23px; border-right:1px solid var(--line); }
+    .lane:last-child,.scenario:last-child { border-right:0; }
+    .lane strong { display:block; margin-top:24px; font:600 34px/1 var(--display); }
+    .lane small { color:var(--muted); }
+    .status,.kind { display:inline-block; padding:2px 6px; border:1px solid currentColor; font:700 9px/1.5 var(--mono); text-transform:uppercase; }
+    .status.complete,.kind.fact { color:var(--green); }
+    .status.omitted,.kind.inference { color:var(--amber); }
+    .scenario { min-height:410px; border-top:5px solid var(--strong); }
+    .scenario.bull { border-top-color:var(--green); }
+    .scenario.base { border-top-color:var(--soft); }
+    .scenario.bear { border-top-color:var(--red); }
+    .scenario .thesis { min-height:105px; font-size:16px; }
+    .scenario li { margin-bottom:7px; }
+    .refs,.muted,.empty { color:var(--muted); font-size:11px; }
+    .split { display:grid; grid-template-columns:1fr 1fr; gap:52px; }
+    ul { padding-left:20px; }
+    table { width:100%; border-collapse:collapse; font-size:12px; }
+    th,td { padding:12px 10px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { border-top:2px solid var(--ink); color:var(--muted); font:700 9px/1.3 var(--mono); }
+    .claim-text { min-width:340px; }
+    code { font-family:var(--mono); font-size:.9em; }
+    .table-wrap { overflow-x:auto; }
+    .sources { display:grid; grid-template-columns:repeat(2,1fr); gap:0 34px; padding:0; border-top:2px solid var(--ink); list-style:none; }
+    .sources li { padding:14px 0; border-bottom:1px solid var(--line); }
+    .sources span { display:block; color:var(--muted); font-size:11px; }
+    .analyst-report { padding-top:0; }
+    .analyst-report > .eyebrow { margin-top:55px; }
+    .analyst-lead { position:relative; padding:39px 42px 43px; color:var(--raised); background:var(--ink); }
+    .analyst-lead::before { position:absolute; inset:0 auto 0 0; width:6px; background:var(--green); content:""; }
+    .analyst-lead h3 { max-width:920px; margin:23px 0 0; font-size:clamp(31px,4.4vw,50px); letter-spacing:-.045em; }
+    .analyst-lead > p { max-width:900px; margin:19px 0 0; color:#c9ccc5; font-size:15px; }
+    .analyst-verdict { display:flex; flex-wrap:wrap; gap:8px; }
+    .analyst-verdict span { padding:5px 8px; border:1px solid #6f736c; color:#d8dbd4; font-size:10px; font-weight:700; }
+    .analyst-verdict .stance { border-color:#9bc4ad; color:#c7e5d3; }
+    .key-points { display:grid; grid-template-columns:repeat(3,1fr); border:1px solid var(--ink); border-top:0; }
+    .key-point { min-width:0; padding:24px; border-right:1px solid var(--line); }
+    .key-point:last-child { border-right:0; }
+    .key-point .number,.monitoring .number { color:var(--green); font:800 10px/1 var(--mono); }
+    .key-point h3 { margin:11px 0 9px; font-size:18px; }
+    .key-point p,.perspective p,.monitoring p { margin:0; color:var(--soft); font-size:13px; }
+    .analyst-refs { display:flex; flex-wrap:wrap; gap:5px; margin-top:14px; color:var(--muted); font:600 9px/1.5 var(--mono); }
+    .report-subhead { display:flex; justify-content:space-between; gap:20px; align-items:end; margin:38px 0 14px; }
+    .report-subhead h3,.report-subhead p { margin:0; }
+    .report-subhead h3 { font-size:24px; }
+    .report-subhead p { color:var(--muted); font-size:11px; }
+    .perspectives { display:grid; grid-template-columns:1fr 1fr; border-top:2px solid var(--ink); }
+    .perspective { min-width:0; padding:21px; border-right:1px solid var(--line); border-bottom:1px solid var(--line); border-left:4px solid var(--strong); }
+    .perspective:nth-child(even) { border-right:0; }
+    .perspective.impact-supportive { border-left-color:var(--green); }
+    .perspective.impact-mixed { border-left-color:var(--amber); }
+    .perspective.impact-cautionary { border-left-color:var(--red); }
+    .perspective header { display:flex; justify-content:space-between; gap:14px; padding:0; border:0; }
+    .perspective h3 { margin:0; font-size:16px; }
+    .perspective header span { color:var(--muted); font-size:9px; font-weight:700; }
+    .perspective p { margin-top:12px; }
+    .monitoring { margin:0; padding:0; border-top:2px solid var(--ink); list-style:none; }
+    .monitoring li { display:grid; grid-template-columns:42px minmax(0,1fr) minmax(170px,.35fr); gap:17px; padding:19px 0; border-bottom:1px solid var(--line); }
+    .monitoring h3 { margin:0 0 6px; font-size:16px; }
+    .monitoring .analyst-refs { justify-content:flex-end; margin-top:2px; }
+    .final-assessment { margin-top:38px; padding:23px 26px; border-left:5px solid var(--green); background:var(--green-pale); }
+    .final-assessment > span { color:var(--green); font:800 10px/1 var(--mono); }
+    .final-assessment > p { margin:8px 0 0; font-size:16px; font-weight:650; }
+    footer { display:flex; justify-content:space-between; gap:20px; padding:23px 0; color:var(--muted); font:500 10px/1.4 var(--mono); }
+    @keyframes reveal { from { opacity:0; transform:translateY(9px); } to { opacity:1; transform:translateY(0); } }
+    .report-head,.page > section { animation:reveal 420ms cubic-bezier(.2,.8,.2,1) both; }
+    .page > section:nth-of-type(1) { animation-delay:60ms; }
+    @media (max-width:820px) {
+      .page { width:min(100% - 28px,1180px); }
+      .report-brand { min-height:62px; align-items:flex-start; flex-direction:column; justify-content:center; gap:3px; }
+      .report-head,.split { grid-template-columns:1fr; }
+      .report-head { gap:30px; padding:45px 0 34px; }
+      .overview,.lanes,.scenarios,.sources,.key-points,.perspectives { grid-template-columns:1fr; }
+      .overview div,.lane,.scenario,.key-point,.perspective { border-right:0; border-bottom:1px solid var(--line); }
+      .overview div:last-child,.lane:last-child,.scenario:last-child,.key-point:last-child { border-bottom:0; }
+      section { padding:46px 0; }
+      .scenario { min-height:0; }
+      .analyst-report > .eyebrow { margin-top:45px; }
+      .analyst-lead { padding:29px 22px 31px 28px; }
+      .report-subhead { align-items:start; flex-direction:column; gap:4px; }
+      .monitoring li { grid-template-columns:27px 1fr; gap:8px; }
+      .monitoring .analyst-refs { grid-column:2; justify-content:flex-start; }
+      .final-assessment { padding:21px 18px; }
+      footer { align-items:flex-start; flex-direction:column; gap:7px; }
+    }
+    @media print {
+      body { background:white; }
+      .page { width:100%; margin:0; }
+      .report-brand { min-height:42px; }
+      .scenario,.lane,.key-point { break-inside:avoid; }
+      a { color:inherit; text-decoration:none; }
+    }
+    @media (prefers-reduced-motion:reduce) {
+      *,*::before,*::after { scroll-behavior:auto!important; animation:none!important; transition:none!important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="report-brand"><strong>나의 주식 분석</strong><span>수석 애널리스트 보고서 · 읽기 전용</span></div>
+    <header class="report-head">
+      <div><p class="eyebrow">검증된 주식 분석 · 한국거래소</p><h1>035720</h1><p>일봉 · 1~3개월 · 원</p></div>
+      <aside class="meta"><span>분석 기준 시각</span><strong>2026-08-21T15:30:00+09:00</strong><span>실행 기록 · 20260821-035720-daily</span></aside>
+    </header>
+
+    <section class="analyst-report"><p class="eyebrow">수석 애널리스트 브리핑</p><h2>종합 의견</h2><article class="analyst-lead"><div class="analyst-verdict"><span class="stance stance-cautious">현재 판단 · 신중</span><span>확신 수준 · 보통</span></div><h3>인적분할의 장기 논리보다 대량 거래 하락과 실행 불확실성이 먼저 반영됐다</h3><p>카카오는 2분기 영업이익이 개선됐지만 순이익은 크게 감소했고 법적 불확실성도 남아 있다. 8월 21일 인적분할 공시는 사업 정체성 분리라는 장기 논리를 제시했으나, 당일 주가는 7.49% 하락하고 거래량이 20일 평균의 3.57배로 늘었다. 1~3개월에는 34,758원 부근 지지, 36,886~37,963원 평균선 회복, 분할 승인·실행 세부조건을 함께 확인해야 한다.</p></article><div class="key-points"><article class="key-point"><span class="number">01</span><h3>분할 공시가 큰 가격 재평가를 촉발했다</h3><p>종가는 주요 평균선 아래로 내려갔고 거래량은 평소의 3배를 넘었다. 장중 저가에서 일부 반등했지만 추세 복원은 확인되지 않았다.</p><div class="analyst-refs">근거 <code>kakao-tech-001</code> <code>kakao-tech-002</code> <code>kakao-tech-004</code> <code>kakao-news-001</code></div></article><article class="key-point"><span class="number">02</span><h3>영업이익과 최종 이익의 질이 엇갈린다</h3><p>매출과 영업이익은 개선됐지만 순이익과 지배주주 순이익은 급감해 후속 분기의 영업외손익 정상화가 필요하다.</p><div class="analyst-refs">근거 <code>kakao-fund-001</code> <code>kakao-fund-002</code> <code>kakao-fund-003</code></div></article><article class="key-point"><span class="number">03</span><h3>분할은 기회와 실행 위험을 동시에 만든다</h3><p>사업별 가치가 선명해질 수 있지만 승인·재상장까지 시간이 남았고 법적 위험도 병존한다.</p><div class="analyst-refs">근거 <code>kakao-news-001</code> <code>kakao-news-002</code> <code>kakao-risk-001</code></div></article></div><div class="report-subhead"><h3>관점별 종합</h3><p>각 분석이 최종 판단에 미친 영향입니다.</p></div><div class="perspectives"><article class="perspective impact-cautionary"><header><h3>기술적 관점</h3><span>주의 요인</span></header><p>35,800원 종가는 20일선과 50일선 아래이며 대량 거래 하락이 발생했다. 34,758원 부근 지지와 36,886~37,963원 회복이 핵심이다.</p><div class="analyst-refs">근거 <code>kakao-tech-001</code> <code>kakao-tech-002</code> <code>kakao-tech-003</code> <code>kakao-tech-004</code></div></article><article class="perspective impact-mixed"><header><h3>펀더멘털 관점</h3><span>혼재</span></header><p>영업이익 증가는 지지 요인이지만 순이익 급감으로 이익의 질을 추가 확인해야 하며 재무 완충력은 분할 구조와 함께 재평가될 수 있다.</p><div class="analyst-refs">근거 <code>kakao-fund-001</code> <code>kakao-fund-002</code> <code>kakao-fund-003</code></div></article><article class="perspective impact-mixed"><header><h3>뉴스·시장 관점</h3><span>혼재</span></header><p>인적분할은 사업별 정체성을 명확히 할 수 있으나 공시일 시장 반응은 부정적이었고 승인·실행·재상장 조건이 남아 있다.</p><div class="analyst-refs">근거 <code>kakao-tech-004</code> <code>kakao-news-001</code> <code>kakao-news-002</code></div></article><article class="perspective impact-cautionary"><header><h3>반대 관점</h3><span>주의 요인</span></header><p>분할 실행 불확실성, 영업외손익 변동, 진행 중인 법적 절차와 대량 거래 하락이 동시에 존재한다.</p><div class="analyst-refs">근거 <code>kakao-fund-002</code> <code>kakao-news-002</code> <code>kakao-risk-001</code> <code>kakao-syn-001</code></div></article></div><div class="report-subhead"><h3>판단을 바꿀 신호</h3><p>다음 분석에서 우선 확인할 항목입니다.</p></div><ol class="monitoring"><li><span class="number">01</span><div><h3>34,758원 볼린저 하단과 33,600원 장중 저점</h3><p>이 구간을 종가로 이탈하면 공시 충격의 추가 반영 가능성이 커지고, 지지하면 단기 가격 발견이 진행 중이라는 근거가 된다.</p></div><div class="analyst-refs">근거 <code>kakao-tech-001</code> <code>kakao-tech-003</code> <code>kakao-syn-001</code></div></li><li><span class="number">02</span><div><h3>36,886원 50일선과 37,963원 20일선 회복</h3><p>두 평균선을 거래량 안정과 함께 회복해야 대량 거래 하락이 일시적 충격이었다는 근거가 생긴다.</p></div><div class="analyst-refs">근거 <code>kakao-tech-002</code> <code>kakao-tech-004</code></div></li><li><span class="number">03</span><div><h3>분할 주주총회·세부 실행 조건과 순이익 정상화</h3><p>분할 일정의 확정성과 영업이익의 순이익 전환이 함께 확인돼야 구조개편의 경제적 효과를 높게 평가할 수 있다.</p></div><div class="analyst-refs">근거 <code>kakao-fund-001</code> <code>kakao-fund-002</code> <code>kakao-news-001</code> <code>kakao-news-002</code></div></li></ol><aside class="final-assessment"><span>최종 판단</span><p>현재 평가는 신중하다. 인적분할은 장기 가치 구분의 계기가 될 수 있지만 시장은 공시 당일 대량 거래 하락으로 실행·가치평가 위험을 먼저 반영했다. 34,758원 지지, 37,963원 회복, 분할 승인과 이익의 질 개선 중 무엇이 먼저 확인되는지가 1~3개월 판단을 바꾼다.</p><div class="analyst-refs">근거 <code>kakao-tech-002</code> <code>kakao-tech-003</code> <code>kakao-tech-004</code> <code>kakao-fund-001</code> <code>kakao-fund-002</code> <code>kakao-news-001</code> <code>kakao-news-002</code> <code>kakao-syn-001</code></div></aside></section>
+
+    <section>
+      <p class="eyebrow">검증 요약</p><h2>검증을 통과한 분석</h2>
+      <div class="overview"><div><strong>6</strong><span>출처</span></div><div><strong>11</strong><span>원자 주장</span></div><div><strong>통과</strong><span>반대 검토 · 2026-08-24T12:21:12+09:00</span></div></div>
+    </section>
+
+    <section><p class="eyebrow">독립 분석 영역</p><h2>세 개의 독립 분석</h2><div class="lanes"><article class="lane"><span class="status complete">완료</span><h3>기술</h3><strong>4</strong><small>개 주장 · 사실 2 · 추론 2</small></article><article class="lane"><span class="status complete">완료</span><h3>펀더멘털</h3><strong>4</strong><small>개 주장 · 사실 4 · 추론 0</small></article><article class="lane"><span class="status complete">완료</span><h3>뉴스</h3><strong>2</strong><small>개 주장 · 사실 1 · 추론 1</small></article></div></section>
+    <section><p class="eyebrow">조건별 시나리오</p><h2>상승·기준·하락 경로</h2><div class="scenarios"><article class="scenario bull"><p class="kicker">상승 시나리오</p><h3>상승</h3><p class="thesis">분할 세부조건이 주주가치 훼손 우려를 낮추고 가격이 주요 평균선을 회복하는 시나리오다.</p><h4>확인 조건</h4><ul><li>종가가 37,963원 20일선을 회복하고 거래량이 안정된다</li><li>분할 승인·재상장 일정과 사업별 자본구조가 명확해진다</li><li>영업이익 개선이 순이익 정상화로 이어진다</li></ul><h4>무효화</h4><p>33,600원 장중 저점을 종가로 이탈하거나 분할 조건이 주주가치 우려를 확대하면 무효다.</p><p class="refs">근거 주장: kakao-tech-001, kakao-tech-002, kakao-fund-001, kakao-fund-002, kakao-news-001, kakao-news-002</p></article><article class="scenario base"><p class="kicker">기준 시나리오</p><h3>기준</h3><p class="thesis">분할 효과와 이익의 질을 재평가하며 34,758~37,963원 부근에서 가격 발견이 이어지는 시나리오다.</p><h4>확인 조건</h4><ul><li>34,758원 부근 지지가 유지된다</li><li>36,886~37,963원 회복 시도가 이어진다</li><li>분할 일정에 중대한 악화가 없다</li></ul><h4>무효화</h4><p>37,963원을 거래량과 함께 명확히 돌파하거나 34,758원을 종가로 이탈하면 범위 가정은 무효다.</p><p class="refs">근거 주장: kakao-tech-002, kakao-tech-003, kakao-news-001, kakao-syn-001</p></article><article class="scenario bear"><p class="kicker">하락 시나리오</p><h3>하락</h3><p class="thesis">분할 실행·지주사 할인 우려와 순이익 부진이 겹치며 공시일 저점 아래로 약세가 이어지는 시나리오다.</p><h4>확인 조건</h4><ul><li>34,758원과 33,600원을 종가 기준으로 순차 이탈한다</li><li>분할 승인 또는 실행 조건의 불확실성이 확대된다</li><li>순이익 부진이나 법적 위험이 악화된다</li></ul><h4>무효화</h4><p>37,963원을 회복하고 분할 세부조건과 순이익 개선이 함께 확인되면 무효다.</p><p class="refs">근거 주장: kakao-tech-001, kakao-tech-002, kakao-fund-002, kakao-news-002, kakao-risk-001</p></article></div></section>
+
+    <section>
+      <div class="split">
+        <div><p class="eyebrow">반대 근거</p><h2>충돌하는 증거</h2><ul><li>인적분할은 사업별 가치 구분을 선명하게 할 수 있지만 공시일 주가는 대량 거래와 함께 하락해 시장이 실행·할인 위험을 우선 반영했다.</li><li>계속사업 영업이익은 개선됐지만 당기순이익과 지배주주 순이익은 크게 감소해 이익의 질이 혼재한다.</li></ul></div>
+        <div><p class="eyebrow">분석 공백</p><h2>판단의 한계</h2><ul><li>기술지표는 네이버 금융의 비조정 일별 원자료를 2026년 8월 21일 정규장까지만 절단해 계산했으며 다른 제공사의 조정 방식과 차이가 날 수 있다.</li><li>인적분할은 주주총회 승인과 후속 실행 절차가 남은 장래 계획이며 실제 일정과 사업별 가치평가는 달라질 수 있다.</li><li>보안 지침에 따라 카카오 소유 도메인에는 직접 접근하지 않았고 DART·KIND와 독립 공개 출처만 사용했다.</li><li>이 자료는 정보 제공용 연구이며 개인화된 투자 조언, 매수·매도 제안 또는 주문 지시가 아니다.</li></ul></div>
+      </div>
+    </section>
+
+    <section><p class="eyebrow">원자 주장</p><h2>주장과 출처 추적</h2><div class="table-wrap"><table><thead><tr><th>식별자</th><th>구분</th><th>주장</th><th>신뢰도</th><th>출처</th></tr></thead><tbody><tr><td><code>kakao-tech-001</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">2026년 8월 21일 정규장 종가는 35,800원으로 전 거래일보다 7.49% 하락했고, 시가 38,150원·고가 38,750원·저가 33,600원·거래량 10,109,356주였다. 독립 시세 두 곳의 종가와 가격 범위가 일치했다.</td><td>99%</td><td><a href="https://api.finance.naver.com/siseJson.naver?symbol=035720%26requestType=1%26startTime=20240101%26endTime=20260821%26timeframe=day" target="_blank" rel="noreferrer">kakao-src-market-naver</a>, <a href="https://kr.investing.com/equities/kakao-corp-historical-data" target="_blank" rel="noreferrer">kakao-src-market-investing</a></td></tr><tr><td><code>kakao-tech-002</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">8월 21일 종가는 20일 단순이동평균 37,962.5원과 50일 단순이동평균 36,886원을 모두 밑돌았고, 최근 20거래일 종가 수익률은 -3.63%였다.</td><td>97%</td><td><a href="https://api.finance.naver.com/siseJson.naver?symbol=035720%26requestType=1%26startTime=20240101%26endTime=20260821%26timeframe=day" target="_blank" rel="noreferrer">kakao-src-market-naver</a></td></tr><tr><td><code>kakao-tech-003</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">단순 평균 방식 14일 상대강도지수는 43.85이고 20일 볼린저 밴드는 하단 34,758원, 상단 41,167원으로 계산됐다. 종가는 하단 위지만 단기·중기 평균선 아래여서 추세 확인이 필요하다.</td><td>94%</td><td><a href="https://api.finance.naver.com/siseJson.naver?symbol=035720%26requestType=1%26startTime=20240101%26endTime=20260821%26timeframe=day" target="_blank" rel="noreferrer">kakao-src-market-naver</a></td></tr><tr><td><code>kakao-tech-004</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">8월 21일 거래량은 20일 평균 약 283만 주의 3.57배였고 장중 저가 33,600원에서 종가 35,800원으로 일부 회복했다. 분할 공시일의 가격 재평가가 평소보다 큰 거래를 동반했다는 추론이다.</td><td>93%</td><td><a href="https://api.finance.naver.com/siseJson.naver?symbol=035720%26requestType=1%26startTime=20240101%26endTime=20260821%26timeframe=day" target="_blank" rel="noreferrer">kakao-src-market-naver</a>, <a href="https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260821000047" target="_blank" rel="noreferrer">kakao-src-split-dart</a></td></tr><tr><td><code>kakao-fund-001</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">2026년 2분기 계속사업 기준 연결 매출은 2조984억 원으로 전년 동기 대비 3.5% 증가했고 영업이익은 2,770억 원으로 49.0% 증가했다.</td><td>99%</td><td><a href="https://kind.krx.co.kr/external/2026/08/06/000010/20260803001120/99626.htm" target="_blank" rel="noreferrer">kakao-src-q2</a></td></tr><tr><td><code>kakao-fund-002</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">2분기 당기순이익은 180억 원으로 전년 동기 대비 89.5% 감소했고 지배주주 순이익은 163억 원으로 89.9% 감소해 영업이익 개선과 최종 이익의 방향이 엇갈렸다.</td><td>99%</td><td><a href="https://kind.krx.co.kr/external/2026/08/06/000010/20260803001120/99626.htm" target="_blank" rel="noreferrer">kakao-src-q2</a></td></tr><tr><td><code>kakao-fund-003</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">2026년 6월 말 연결 현금 및 현금성자산은 8조1,781억 원, 부채는 12조5,996억 원, 자본은 15조734억 원이며 부채비율은 83.59%였다.</td><td>98%</td><td><a href="https://kind.krx.co.kr/external/2026/08/14/003245/20260814011429/11012.htm" target="_blank" rel="noreferrer">kakao-src-half</a></td></tr><tr><td><code>kakao-news-001</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">8월 21일 이사회는 카카오톡·인공지능·광고·커머스 중심 신설회사와 계열사 투자·관리 중심 존속회사로 나누는 인적분할을 결정했다. 공시된 분할비율은 신설회사 0.3648537, 존속회사 0.6351463이며 분할기일은 2027년 1월 1일, 신설회사 재상장 예정일은 2027년 1월 27일이다.</td><td>97%</td><td><a href="https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260821000047" target="_blank" rel="noreferrer">kakao-src-split-dart</a>, <a href="https://stocksori.com/news/692" target="_blank" rel="noreferrer">kakao-src-split-independent</a></td></tr><tr><td><code>kakao-news-002</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">인적분할은 사업 정체성 명확화와 구조적 저평가 해소를 목표로 하지만, 주주총회 승인과 실행 과정, 분할 후 각 회사의 독립 가치평가가 남아 있어 즉각적인 가치 상승으로 단정할 수 없다.</td><td>88%</td><td><a href="https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260821000047" target="_blank" rel="noreferrer">kakao-src-split-dart</a>, <a href="https://stocksori.com/news/692" target="_blank" rel="noreferrer">kakao-src-split-independent</a></td></tr><tr><td><code>kakao-risk-001</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">반기 말 피고로 계류 중인 소송은 37건, 소송가액은 1,065억 원이며 SM엔터테인먼트 주식 관련 1심 무죄 이후 검찰 항소가 진행 중이어서 분할 외 법적 불확실성도 남아 있다.</td><td>98%</td><td><a href="https://kind.krx.co.kr/external/2026/08/14/003245/20260814011429/11012.htm" target="_blank" rel="noreferrer">kakao-src-half</a></td></tr><tr><td><code>kakao-syn-001</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">영업이익 개선에도 최종 이익의 질과 법적 위험이 남은 가운데, 인적분할 공시일의 대량 거래 하락으로 가격이 주요 평균선 아래로 내려갔다. 1~3개월 평가는 분할 세부 실행과 34,758~38,000원 구간의 가격 확인 전까지 신중한 균형이 적절하다는 추론이다.</td><td>88%</td><td><a href="https://api.finance.naver.com/siseJson.naver?symbol=035720%26requestType=1%26startTime=20240101%26endTime=20260821%26timeframe=day" target="_blank" rel="noreferrer">kakao-src-market-naver</a>, <a href="https://kind.krx.co.kr/external/2026/08/06/000010/20260803001120/99626.htm" target="_blank" rel="noreferrer">kakao-src-q2</a>, <a href="https://kind.krx.co.kr/external/2026/08/14/003245/20260814011429/11012.htm" target="_blank" rel="noreferrer">kakao-src-half</a>, <a href="https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260821000047" target="_blank" rel="noreferrer">kakao-src-split-dart</a></td></tr></tbody></table></div></section>
+    <section><p class="eyebrow">근거 자료</p><h2>출처 목록</h2><ol class="sources"><li><a href="https://api.finance.naver.com/siseJson.naver?symbol=035720%26requestType=1%26startTime=20240101%26endTime=20260821%26timeframe=day" target="_blank" rel="noreferrer">네이버 금융 공개 시세 API - 카카오 일별 정규장 데이터</a><span><code>kakao-src-market-naver</code> · 독립 시장 데이터 제공사 API · 2026-08-21T15:30:00+09:00</span></li><li><a href="https://kr.investing.com/equities/kakao-corp-historical-data" target="_blank" rel="noreferrer">인베스팅닷컴 - 카카오 2026년 8월 과거 시세</a><span><code>kakao-src-market-investing</code> · 독립 시장 데이터 제공사 · 2026-08-21T15:30:00+09:00</span></li><li><a href="https://kind.krx.co.kr/external/2026/08/06/000010/20260803001120/99626.htm" target="_blank" rel="noreferrer">한국거래소 KIND - 카카오 2026년 2분기 연결 잠정실적</a><span><code>kakao-src-q2</code> · 거래소 공식 공시 · 2026-08-06T08:04:00+09:00</span></li><li><a href="https://kind.krx.co.kr/external/2026/08/14/003245/20260814011429/11012.htm" target="_blank" rel="noreferrer">한국거래소 KIND - 카카오 2026년 반기보고서</a><span><code>kakao-src-half</code> · 거래소 공식 정기 공시 · 2026-08-14T17:01:00+09:00</span></li><li><a href="https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260821000047" target="_blank" rel="noreferrer">금융감독원 전자공시 - 카카오 회사분할 결정</a><span><code>kakao-src-split-dart</code> · 금융감독원 공식 공시 · 2026-08-21T08:58:00+09:00</span></li><li><a href="https://stocksori.com/news/692" target="_blank" rel="noreferrer">카카오, 카카오AI·카카오엑스로 인적분할 이사회 결의</a><span><code>kakao-src-split-independent</code> · 독립 공시 해설 · 2026-08-21T08:58:00+09:00</span></li></ol></section>
+    <footer><span>분석 근거 스키마 1.1 · 결정적 보고서</span><span>주문 실행 없음 · 개인화된 투자 조언 아님</span></footer>
+  </main>
+</body>
+</html>

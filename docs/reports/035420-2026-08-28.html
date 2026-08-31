@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f3f0e7">
+  <title>035420 주식 분석</title>
+  <style>
+    :root {
+      --paper:#f3f0e7; --raised:#faf8f2; --ink:#181a17; --soft:#3f433e;
+      --muted:#6b6f68; --line:#cbc7bb; --strong:#7f827b; --green:#174f3a;
+      --green-pale:#e4ede7; --amber:#765817; --red:#963a31;
+      --display:AppleMyungjo,"Noto Serif KR","Nanum Myeongjo",Georgia,serif;
+      --body:Pretendard,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+      --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; color:var(--ink); background:var(--paper); font-family:var(--body); line-height:1.68; word-break:keep-all; -webkit-font-smoothing:antialiased; }
+    a { color:var(--green); text-underline-offset:3px; }
+    a:focus-visible { outline:3px solid var(--green); outline-offset:3px; }
+    h1,h2,h3,h4,p { margin-top:0; }
+    .page { width:min(1180px,calc(100% - 44px)); margin:0 auto 64px; }
+    .report-brand { min-height:68px; display:flex; justify-content:space-between; gap:20px; align-items:center; border-bottom:1px solid var(--ink); color:var(--muted); font:600 10px/1.3 var(--mono); }
+    .report-brand strong { color:var(--ink); font-family:var(--body); font-size:13px; letter-spacing:-.02em; }
+    .report-head { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:56px; align-items:end; padding:64px 0 46px; border-bottom:1px solid var(--ink); }
+    h1 { margin-bottom:14px; font:600 clamp(58px,9vw,108px)/.88 var(--display); letter-spacing:-.07em; }
+    h2 { margin-bottom:21px; font:600 clamp(31px,4vw,46px)/1.08 var(--display); letter-spacing:-.04em; }
+    h3 { font:600 24px/1.25 var(--display); }
+    h4 { margin:21px 0 8px; font:700 10px/1.3 var(--mono); letter-spacing:.06em; }
+    .eyebrow,.kicker { color:var(--green); font:750 10px/1.3 var(--mono); letter-spacing:.07em; }
+    .meta { padding:20px 0; border-top:2px solid var(--ink); border-bottom:1px solid var(--line); }
+    .meta span { display:block; color:var(--muted); font-size:10px; }
+    .meta strong { display:block; margin:6px 0; font:600 19px/1.3 var(--display); overflow-wrap:anywhere; }
+    section { padding:58px 0; border-bottom:1px solid var(--ink); }
+    .overview { display:grid; grid-template-columns:repeat(3,1fr); border-top:2px solid var(--ink); border-bottom:1px solid var(--line); }
+    .overview div { padding:20px; border-right:1px solid var(--line); }
+    .overview div:last-child { border-right:0; }
+    .overview strong { display:block; font:600 30px/1.1 var(--display); }
+    .overview span { color:var(--muted); font-size:11px; }
+    .lanes,.scenarios { display:grid; grid-template-columns:repeat(3,1fr); border-top:2px solid var(--ink); border-bottom:1px solid var(--line); }
+    .lane,.scenario { min-width:0; padding:23px; border-right:1px solid var(--line); }
+    .lane:last-child,.scenario:last-child { border-right:0; }
+    .lane strong { display:block; margin-top:24px; font:600 34px/1 var(--display); }
+    .lane small { color:var(--muted); }
+    .status,.kind { display:inline-block; padding:2px 6px; border:1px solid currentColor; font:700 9px/1.5 var(--mono); text-transform:uppercase; }
+    .status.complete,.kind.fact { color:var(--green); }
+    .status.omitted,.kind.inference { color:var(--amber); }
+    .scenario { min-height:410px; border-top:5px solid var(--strong); }
+    .scenario.bull { border-top-color:var(--green); }
+    .scenario.base { border-top-color:var(--soft); }
+    .scenario.bear { border-top-color:var(--red); }
+    .scenario .thesis { min-height:105px; font-size:16px; }
+    .scenario li { margin-bottom:7px; }
+    .refs,.muted,.empty { color:var(--muted); font-size:11px; }
+    .split { display:grid; grid-template-columns:1fr 1fr; gap:52px; }
+    ul { padding-left:20px; }
+    table { width:100%; border-collapse:collapse; font-size:12px; }
+    th,td { padding:12px 10px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { border-top:2px solid var(--ink); color:var(--muted); font:700 9px/1.3 var(--mono); }
+    .claim-text { min-width:340px; }
+    code { font-family:var(--mono); font-size:.9em; }
+    .table-wrap { overflow-x:auto; }
+    .sources { display:grid; grid-template-columns:repeat(2,1fr); gap:0 34px; padding:0; border-top:2px solid var(--ink); list-style:none; }
+    .sources li { padding:14px 0; border-bottom:1px solid var(--line); }
+    .sources span { display:block; color:var(--muted); font-size:11px; }
+    .analyst-report { padding-top:0; }
+    .analyst-report > .eyebrow { margin-top:55px; }
+    .analyst-lead { position:relative; padding:39px 42px 43px; color:var(--raised); background:var(--ink); }
+    .analyst-lead::before { position:absolute; inset:0 auto 0 0; width:6px; background:var(--green); content:""; }
+    .analyst-lead h3 { max-width:920px; margin:23px 0 0; font-size:clamp(31px,4.4vw,50px); letter-spacing:-.045em; }
+    .analyst-lead > p { max-width:900px; margin:19px 0 0; color:#c9ccc5; font-size:15px; }
+    .analyst-verdict { display:flex; flex-wrap:wrap; gap:8px; }
+    .analyst-verdict span { padding:5px 8px; border:1px solid #6f736c; color:#d8dbd4; font-size:10px; font-weight:700; }
+    .analyst-verdict .stance { border-color:#9bc4ad; color:#c7e5d3; }
+    .key-points { display:grid; grid-template-columns:repeat(3,1fr); border:1px solid var(--ink); border-top:0; }
+    .key-point { min-width:0; padding:24px; border-right:1px solid var(--line); }
+    .key-point:last-child { border-right:0; }
+    .key-point .number,.monitoring .number { color:var(--green); font:800 10px/1 var(--mono); }
+    .key-point h3 { margin:11px 0 9px; font-size:18px; }
+    .key-point p,.perspective p,.monitoring p { margin:0; color:var(--soft); font-size:13px; }
+    .analyst-refs { display:flex; flex-wrap:wrap; gap:5px; margin-top:14px; color:var(--muted); font:600 9px/1.5 var(--mono); }
+    .report-subhead { display:flex; justify-content:space-between; gap:20px; align-items:end; margin:38px 0 14px; }
+    .report-subhead h3,.report-subhead p { margin:0; }
+    .report-subhead h3 { font-size:24px; }
+    .report-subhead p { color:var(--muted); font-size:11px; }
+    .perspectives { display:grid; grid-template-columns:1fr 1fr; border-top:2px solid var(--ink); }
+    .perspective { min-width:0; padding:21px; border-right:1px solid var(--line); border-bottom:1px solid var(--line); border-left:4px solid var(--strong); }
+    .perspective:nth-child(even) { border-right:0; }
+    .perspective.impact-supportive { border-left-color:var(--green); }
+    .perspective.impact-mixed { border-left-color:var(--amber); }
+    .perspective.impact-cautionary { border-left-color:var(--red); }
+    .perspective header { display:flex; justify-content:space-between; gap:14px; padding:0; border:0; }
+    .perspective h3 { margin:0; font-size:16px; }
+    .perspective header span { color:var(--muted); font-size:9px; font-weight:700; }
+    .perspective p { margin-top:12px; }
+    .monitoring { margin:0; padding:0; border-top:2px solid var(--ink); list-style:none; }
+    .monitoring li { display:grid; grid-template-columns:42px minmax(0,1fr) minmax(170px,.35fr); gap:17px; padding:19px 0; border-bottom:1px solid var(--line); }
+    .monitoring h3 { margin:0 0 6px; font-size:16px; }
+    .monitoring .analyst-refs { justify-content:flex-end; margin-top:2px; }
+    .final-assessment { margin-top:38px; padding:23px 26px; border-left:5px solid var(--green); background:var(--green-pale); }
+    .final-assessment > span { color:var(--green); font:800 10px/1 var(--mono); }
+    .final-assessment > p { margin:8px 0 0; font-size:16px; font-weight:650; }
+    footer { display:flex; justify-content:space-between; gap:20px; padding:23px 0; color:var(--muted); font:500 10px/1.4 var(--mono); }
+    @keyframes reveal { from { opacity:0; transform:translateY(9px); } to { opacity:1; transform:translateY(0); } }
+    .report-head,.page > section { animation:reveal 420ms cubic-bezier(.2,.8,.2,1) both; }
+    .page > section:nth-of-type(1) { animation-delay:60ms; }
+    @media (max-width:820px) {
+      .page { width:min(100% - 28px,1180px); }
+      .report-brand { min-height:62px; align-items:flex-start; flex-direction:column; justify-content:center; gap:3px; }
+      .report-head,.split { grid-template-columns:1fr; }
+      .report-head { gap:30px; padding:45px 0 34px; }
+      .overview,.lanes,.scenarios,.sources,.key-points,.perspectives { grid-template-columns:1fr; }
+      .overview div,.lane,.scenario,.key-point,.perspective { border-right:0; border-bottom:1px solid var(--line); }
+      .overview div:last-child,.lane:last-child,.scenario:last-child,.key-point:last-child { border-bottom:0; }
+      section { padding:46px 0; }
+      .scenario { min-height:0; }
+      .analyst-report > .eyebrow { margin-top:45px; }
+      .analyst-lead { padding:29px 22px 31px 28px; }
+      .report-subhead { align-items:start; flex-direction:column; gap:4px; }
+      .monitoring li { grid-template-columns:27px 1fr; gap:8px; }
+      .monitoring .analyst-refs { grid-column:2; justify-content:flex-start; }
+      .final-assessment { padding:21px 18px; }
+      footer { align-items:flex-start; flex-direction:column; gap:7px; }
+    }
+    @media print {
+      body { background:white; }
+      .page { width:100%; margin:0; }
+      .report-brand { min-height:42px; }
+      .scenario,.lane,.key-point { break-inside:avoid; }
+      a { color:inherit; text-decoration:none; }
+    }
+    @media (prefers-reduced-motion:reduce) {
+      *,*::before,*::after { scroll-behavior:auto!important; animation:none!important; transition:none!important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="report-brand"><strong>나의 주식 분석</strong><span>수석 애널리스트 보고서 · 읽기 전용</span></div>
+    <header class="report-head">
+      <div><p class="eyebrow">검증된 주식 분석 · 한국거래소</p><h1>035420</h1><p>일봉 · 1~3개월 · 원</p></div>
+      <aside class="meta"><span>분석 기준 시각</span><strong>2026-08-28T15:30:00+09:00</strong><span>실행 기록 · 20260828-035420-daily</span></aside>
+    </header>
+
+    <section class="analyst-report"><p class="eyebrow">수석 애널리스트 브리핑</p><h2>종합 의견</h2><article class="analyst-lead"><div class="analyst-verdict"><span class="stance stance-balanced">현재 판단 · 균형</span><span>확신 수준 · 보통</span></div><h3>엔비디아 10억 달러와 자기주식 소각은 우호적이지만 최종 신주 수량과 200일선 저항이 남아 있다</h3><p>NAVER는 핵심 사업과 개인 간 거래 성장에 더해 엔비디아로부터 미화 10억 달러의 인공지능 팩토리 자금을 조달한다. KIND의 7,241,564주와 소각 대비 잠정 순증 2,340,470주는 7월 23일 환율 기준이며, 최종 발행주식수와 희석 규모는 Measurement Date 환율로 재확정된다. 영업이익도 소폭 줄었고 인공지능 팩토리 수익성은 미확정이다. 주가는 20일선과 50일선 위지만 200일선 아래다.</p></article><div class="key-points"><article class="key-point"><span class="number">01</span><h3>매출 성장과 수익성 방향이 엇갈렸다</h3><p>매출과 개인 간 거래 사업은 빠르게 성장했지만 인공지능 투자 영향으로 영업이익은 소폭 감소했다. 성장의 현금 수익 전환 속도가 핵심이다.</p><div class="analyst-refs">근거 <code>fund-001</code> <code>fund-002</code> <code>fund-003</code></div></article><article class="key-point"><span class="number">02</span><h3>고정 달러 자금과 잠정 신주 수량을 구분해야 한다</h3><p>엔비디아의 미화 10억 달러 투자액은 고정이지만 KIND 신주 수량과 소각 대비 잠정 순증은 7월 23일 환율 기준이다. Measurement Date 환율로 최종 신주 수량과 희석 규모를 다시 확인해야 한다.</p><div class="analyst-refs">근거 <code>fund-004</code> <code>news-001</code> <code>news-002</code> <code>news-003</code> <code>news-004</code></div></article><article class="key-point"><span class="number">03</span><h3>가격은 200일선 저항을 앞두고 있다</h3><p>20일선과 50일선은 웃돌지만 200일선과 볼린저 상단이 가깝고 거래량은 평균의 0.85배다.</p><div class="analyst-refs">근거 <code>tech-003</code> <code>tech-004</code> <code>tech-005</code> <code>tech-006</code></div></article></div><div class="report-subhead"><h3>관점별 종합</h3><p>각 분석이 최종 판단에 미친 영향입니다.</p></div><div class="perspectives"><article class="perspective impact-mixed"><header><h3>기술적 관점</h3><span>혼재</span></header><p>단기 평균선 위라는 점은 긍정적이나 229,000~235,000원 저항과 낮은 거래량 때문에 중기 추세 전환은 미확인이다.</p><div class="analyst-refs">근거 <code>tech-002</code> <code>tech-003</code> <code>tech-005</code> <code>tech-006</code></div></article><article class="perspective impact-mixed"><header><h3>펀더멘털 관점</h3><span>혼재</span></header><p>두 자릿수 매출과 개인 간 거래 성장, 미화 10억 달러 자금 유입은 긍정적이지만 영업이익 감소와 최종 순주식수 효과, 인공지능 투자 수익성은 추가 검증이 필요하다.</p><div class="analyst-refs">근거 <code>fund-001</code> <code>fund-002</code> <code>fund-003</code> <code>fund-004</code></div></article><article class="perspective impact-mixed"><header><h3>뉴스·시장 관점</h3><span>혼재</span></header><p>자기주식 소각과 엔비디아의 고정 달러 투자액은 우호적이나 최종 신주 수량·희석 규모와 고객·가동 조건은 아직 확정되지 않았다.</p><div class="analyst-refs">근거 <code>news-001</code> <code>news-002</code> <code>news-003</code> <code>news-004</code></div></article><article class="perspective impact-cautionary"><header><h3>반대 관점</h3><span>주의 요인</span></header><p>Measurement Date 환율에 따른 신주 수량과 희석 규모 변동, 인공지능 인프라 투자 부담, 고객 확보 지연과 200일선 저항이 핵심 위험이다.</p><div class="analyst-refs">근거 <code>fund-003</code> <code>fund-004</code> <code>news-003</code> <code>news-004</code> <code>tech-006</code></div></article></div><div class="report-subhead"><h3>판단을 바꿀 신호</h3><p>다음 분석에서 우선 확인할 항목입니다.</p></div><ol class="monitoring"><li><span class="number">01</span><div><h3>229,000~235,000원 돌파와 거래량 증가</h3><p>직전 20거래일 평균을 웃도는 거래량으로 200일선·볼린저 상단·최근 고점을 돌파하면 중기 구조 개선 가능성이 높아진다.</p></div><div class="analyst-refs">근거 <code>tech-003</code> <code>tech-004</code> <code>tech-005</code> <code>tech-006</code> <code>synthesis-001</code></div></li><li><span class="number">02</span><div><h3>218,500원 지지 유지</h3><p>20일선을 지키면 기준 시나리오가 유지되지만 종가 이탈이 반복되면 205,000~208,000원 구간 재시험 위험이 커진다.</p></div><div class="analyst-refs">근거 <code>tech-003</code> <code>tech-004</code> <code>tech-006</code></div></li><li><span class="number">03</span><div><h3>영업이익과 인공지능 투자 수익성</h3><p>비용 증가율이 둔화하고 영업이익이 회복돼야 매출 성장이 주주가치로 연결된다고 판단할 수 있다.</p></div><div class="analyst-refs">근거 <code>fund-001</code> <code>fund-002</code> <code>fund-003</code></div></li><li><span class="number">04</span><div><h3>Measurement Date 환율과 최종 신주 수량</h3><p>최종 발행주식수와 소각 후 순주식수 효과를 다시 계산하고 조달금이 고객 계약·가동률·현금흐름으로 전환되는지 검증해야 희석 대비 경제적 효과를 평가할 수 있다.</p></div><div class="analyst-refs">근거 <code>fund-004</code> <code>news-002</code> <code>news-003</code> <code>news-004</code></div></li></ol><aside class="final-assessment"><span>최종 판단</span><p>현재 판단은 균형이다. 매출 성장, 자기주식 소각과 엔비디아의 미화 10억 달러 참여는 긍정적이지만 Measurement Date 환율 전에는 최종 신주 수량과 희석 규모를 단정할 수 없고 수익성 감소와 인공지능 팩토리 실행 조건 미공개도 남아 있다. 가격 신호와 함께 최종 발행 조건 및 조달금의 수익 전환 여부가 다음 판단을 바꾼다.</p><div class="analyst-refs">근거 <code>tech-003</code> <code>tech-005</code> <code>tech-006</code> <code>fund-001</code> <code>fund-003</code> <code>fund-004</code> <code>news-001</code> <code>news-002</code> <code>news-003</code> <code>news-004</code> <code>synthesis-001</code></div></aside></section>
+
+    <section>
+      <p class="eyebrow">검증 요약</p><h2>검증을 통과한 분석</h2>
+      <div class="overview"><div><strong>7</strong><span>출처</span></div><div><strong>15</strong><span>원자 주장</span></div><div><strong>통과</strong><span>반대 검토 · 2026-08-31T12:20:44+09:00</span></div></div>
+    </section>
+
+    <section><p class="eyebrow">독립 분석 영역</p><h2>세 개의 독립 분석</h2><div class="lanes"><article class="lane"><span class="status complete">완료</span><h3>기술</h3><strong>6</strong><small>개 주장 · 사실 3 · 추론 3</small></article><article class="lane"><span class="status complete">완료</span><h3>펀더멘털</h3><strong>4</strong><small>개 주장 · 사실 2 · 추론 2</small></article><article class="lane"><span class="status complete">완료</span><h3>뉴스</h3><strong>4</strong><small>개 주장 · 사실 2 · 추론 2</small></article></div></section>
+    <section><p class="eyebrow">조건별 시나리오</p><h2>상승·기준·하락 경로</h2><div class="scenarios"><article class="scenario bull"><p class="kicker">상승 시나리오</p><h3>상승</h3><p class="thesis">거래량을 동반해 229,000~235,000원 저항을 돌파하고 최종 신주 조건 확인 뒤 엔비디아 조달금이 희석 부담을 웃도는 영업이익·현금흐름으로 전환되면 중기 구조가 강화된다.</p><h4>확인 조건</h4><ul><li>종가가 235,000원 위에서 형성되고 거래량이 직전 20거래일 평균을 상회</li><li>Measurement Date 환율과 최종 신주 수량이 확인되고 초기 고객 계약·가동률·수익 기여가 공식 자료로 공개</li></ul><h4>무효화</h4><p>돌파 후 2거래일 안에 218,500원 아래로 되돌아가거나 최종 희석 규모 확대와 조달금의 수익 전환 지연이 함께 확인되면 무효화된다.</p><p class="refs">근거 주장: tech-003, tech-004, tech-005, tech-006, fund-001, fund-003, fund-004, news-002, news-003, news-004</p></article><article class="scenario base"><p class="kicker">기준 시나리오</p><h3>기준</h3><p class="thesis">매출 성장과 엔비디아의 고정 달러 자금 유입, 아직 미확정인 희석 규모를 함께 재평가하며 218,500~235,000원 범위에서 방향을 확인하는 흐름을 기준으로 본다.</p><h4>확인 조건</h4><ul><li>218,500원 지지 유지</li><li>Measurement Date 환율과 최종 신주 수량이 공개되고 인공지능 팩토리 고객·수익 조건이 추가로 구체화</li></ul><h4>무효화</h4><p>235,000원 상향 돌파 또는 218,500원 하향 이탈이 평균 이상 거래량과 함께 확인되거나 최종 희석·조달금 경제성이 명확해지면 범위 가정이 무효화된다.</p><p class="refs">근거 주장: tech-003, tech-005, tech-006, fund-001, fund-004, news-002, news-003, news-004, synthesis-001</p></article><article class="scenario bear"><p class="kicker">하락 시나리오</p><h3>하락</h3><p class="thesis">218,500원 지지가 무너지고 최종 신주 수량이 소각 수량을 웃도는 가운데 희석 부담을 상쇄할 수익 전환이 지연되면 최근 반등의 되돌림 위험이 커진다.</p><h4>확인 조건</h4><ul><li>평균 이상 거래량과 함께 218,500원 아래 일봉 마감</li><li>Measurement Date 환율로 확정된 순주식수 증가와 신주 자금의 고객·가동률·현금흐름 기여 지연</li></ul><h4>무효화</h4><p>218,500원을 회복하고 이어서 235,000원 위에서 종가가 형성되며 최종 발행 조건과 조달금의 수익 기여가 우호적으로 확인되면 무효화된다.</p><p class="refs">근거 주장: tech-002, tech-003, tech-005, tech-006, fund-003, fund-004, news-002, news-003, news-004</p></article></div></section>
+
+    <section>
+      <div class="split">
+        <div><p class="eyebrow">반대 근거</p><h2>충돌하는 증거</h2><ul><li>매출과 개인 간 거래 사업이 빠르게 성장했지만 인공지능 투자 영향으로 영업이익은 소폭 감소했다.</li><li>자기주식 4,901,094주 소각은 확정됐지만 KIND의 신주 7,241,564주는 7월 23일 환율 기준 잠정치이므로 Measurement Date 전에는 최종 순주식수와 희석 규모를 단정할 수 없다.</li><li>단기 이동평균은 웃돌지만 200일선 아래이고 거래량이 평균에 못 미쳐 중기 전환 신호는 엇갈린다.</li></ul></div>
+        <div><p class="eyebrow">분석 공백</p><h2>판단의 한계</h2><ul><li>정보 제공 목적의 조건별 분석이며 개인화된 투자 조언이 아니다.</li><li>인공지능 팩토리의 브룩필드 조달, 고객 계약, 가동률과 가격은 확정 또는 공개되지 않았다.</li><li>미화 10억 달러 투자액은 고정이지만 보도 환산 약 1조4,625억 원과 KIND 잠정 약 1조4,809억 원은 환율 기준이 다르다. 신주 7,241,564주와 소각 대비 잠정 순증 2,340,470주는 Measurement Date 환율 전 수치이며 최종 발행주식수로 재계산해야 한다.</li><li>동일 기준의 최신 가치평가 배수와 컨센서스를 충분히 검증하지 못해 결론에서 제외했다.</li><li>기술지표는 공개 비조정 일봉에서 재계산했으며 지지와 저항은 관찰 구간이지 가격 결과를 보장하지 않는다.</li></ul></div>
+      </div>
+    </section>
+
+    <section><p class="eyebrow">원자 주장</p><h2>주장과 출처 추적</h2><div class="table-wrap"><table><thead><tr><th>식별자</th><th>구분</th><th>주장</th><th>신뢰도</th><th>출처</th></tr></thead><tbody><tr><td><code>tech-001</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">2026년 8월 28일 NAVER 정규장 종가는 220,500원으로 전 거래일 대비 1.85% 상승했고, 시가 220,000원·고가 229,000원·저가 218,500원·거래량 947,514주였다. 독립 시세 제공사의 가격과 거래량도 일치했다.</td><td>99%</td><td><a href="https://api.finance.naver.com/siseJson.naver?symbol=035420&amp;requestType=1&amp;startTime=20250101&amp;endTime=20260828&amp;timeframe=day" target="_blank" rel="noreferrer">src-tech-naver</a>, <a href="https://kr.investing.com/equities/nhn-corp-historical-data" target="_blank" rel="noreferrer">src-tech-independent</a></td></tr><tr><td><code>tech-002</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">종가는 최근 5거래일 0.68% 하락했지만 20거래일 기준 13.25% 상승했고 50거래일 기준 9.45% 하락해 중기 방향성이 혼재한다.</td><td>96%</td><td><a href="https://api.finance.naver.com/siseJson.naver?symbol=035420&amp;requestType=1&amp;startTime=20250101&amp;endTime=20260828&amp;timeframe=day" target="_blank" rel="noreferrer">src-tech-naver</a></td></tr><tr><td><code>tech-003</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">20일·50일·200일 단순이동평균은 각각 218,500원, 207,962원, 228,930원으로 종가는 20일선과 50일선 위, 200일선 아래다.</td><td>98%</td><td><a href="https://api.finance.naver.com/siseJson.naver?symbol=035420&amp;requestType=1&amp;startTime=20250101&amp;endTime=20260828&amp;timeframe=day" target="_blank" rel="noreferrer">src-tech-naver</a></td></tr><tr><td><code>tech-004</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">와일더 방식 14일 상대강도지수는 53.23이고 20일 볼린저 밴드는 하단 204,851원, 상단 232,149원이다.</td><td>96%</td><td><a href="https://api.finance.naver.com/siseJson.naver?symbol=035420&amp;requestType=1&amp;startTime=20250101&amp;endTime=20260828&amp;timeframe=day" target="_blank" rel="noreferrer">src-tech-naver</a></td></tr><tr><td><code>tech-005</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">8월 28일 거래량은 직전 20거래일 평균 약 1,119,968주의 0.85배여서 200일선 회복을 확인할 만큼 거래 참여가 강하지 않았다.</td><td>94%</td><td><a href="https://api.finance.naver.com/siseJson.naver?symbol=035420&amp;requestType=1&amp;startTime=20250101&amp;endTime=20260828&amp;timeframe=day" target="_blank" rel="noreferrer">src-tech-naver</a>, <a href="https://kr.investing.com/equities/nhn-corp-historical-data" target="_blank" rel="noreferrer">src-tech-independent</a></td></tr><tr><td><code>tech-006</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">관찰 지지는 20일선 218,500원, 다음 지지는 50일선·볼린저 하단·최근 저점이 모인 205,000~208,000원이다. 저항은 200일선과 최근 고점·볼린저 상단이 겹치는 229,000~235,000원이다.</td><td>89%</td><td><a href="https://api.finance.naver.com/siseJson.naver?symbol=035420&amp;requestType=1&amp;startTime=20250101&amp;endTime=20260828&amp;timeframe=day" target="_blank" rel="noreferrer">src-tech-naver</a></td></tr><tr><td><code>fund-001</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">2026년 2분기 매출은 3조3,888억 원으로 전년 동기 대비 16.2% 증가했지만 영업이익은 5,203억 원으로 0.2% 감소했다.</td><td>99%</td><td><a href="https://www.navercorp.com/media/pressReleasesDetail?seq=10034577" target="_blank" rel="noreferrer">src-fund-q2</a>, <a href="https://www.navercorp.com/api/article/download/a769655e-43a9-4be8-8e78-d091981b1803" target="_blank" rel="noreferrer">src-fund-deck</a></td></tr><tr><td><code>fund-002</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">글로벌 개인 간 거래 매출은 전년 동기 대비 74.9% 증가했으나 인공지능 인프라 투자 영향으로 매출 성장에도 연결 영업이익이 소폭 감소했다.</td><td>98%</td><td><a href="https://www.navercorp.com/media/pressReleasesDetail?seq=10034577" target="_blank" rel="noreferrer">src-fund-q2</a>, <a href="https://www.navercorp.com/api/article/download/a769655e-43a9-4be8-8e78-d091981b1803" target="_blank" rel="noreferrer">src-fund-deck</a></td></tr><tr><td><code>fund-003</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">매출 성장과 개인 간 거래 확대는 우호적이지만 인공지능 인프라 투자와 비용 증가가 수익성으로 전환되는 속도는 아직 검증이 필요하다.</td><td>93%</td><td><a href="https://www.navercorp.com/media/pressReleasesDetail?seq=10034577" target="_blank" rel="noreferrer">src-fund-q2</a>, <a href="https://www.navercorp.com/api/article/download/a769655e-43a9-4be8-8e78-d091981b1803" target="_blank" rel="noreferrer">src-fund-deck</a></td></tr><tr><td><code>fund-004</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">엔비디아의 미화 10억 달러 투자 약정은 인공지능 팩토리 자금을 확충한다. KIND의 신주 7,241,564주와 원화 1,480,899,838,000원은 7월 23일 환율을 적용한 잠정치이고 Measurement Date 환율로 최종 발행주식수가 재확정된다. 따라서 자기주식 소각 4,901,094주 대비 순주식수 효과와 기존 주주의 지분 희석 규모도 아직 확정되지 않았다.</td><td>97%</td><td><a href="https://kind.krx.co.kr/external/2026/07/27/000002/20260727000004/11306.htm" target="_blank" rel="noreferrer">src-news-capital</a>, <a href="https://navercorp.com/en/investment/disclosure" target="_blank" rel="noreferrer">src-news-disclosure</a>, <a href="https://www.yna.co.kr/view/AKR20260727014751017" target="_blank" rel="noreferrer">src-news-ai</a></td></tr><tr><td><code>news-001</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">회사는 7월 27일 자기주식 4,901,094주 소각을 결정했고 8월 19일 변경상장이 공시 목록에 반영돼 소각 절차의 실행이 확인됐다.</td><td>97%</td><td><a href="https://navercorp.com/en/investment/disclosure" target="_blank" rel="noreferrer">src-news-disclosure</a>, <a href="https://www.navercorp.com/api/article/download/a769655e-43a9-4be8-8e78-d091981b1803" target="_blank" rel="noreferrer">src-fund-deck</a></td></tr><tr><td><code>news-002</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">7월 27일 공시는 엔비디아의 투자 계약금액을 미화 10억 달러로 고정했다. 보도 환산액은 약 1조4,625억 원이고, KIND에는 7월 23일 환율을 적용한 잠정치로 보통주 7,241,564주·주당 204,500원·1,480,899,838,000원(약 1조4,809억 원)이 기재됐다. 최종 발행주식수는 Measurement Date 환율로 다시 확정된다.</td><td>99%</td><td><a href="https://kind.krx.co.kr/external/2026/07/27/000002/20260727000004/11306.htm" target="_blank" rel="noreferrer">src-news-capital</a>, <a href="https://www.yna.co.kr/view/AKR20260727014751017" target="_blank" rel="noreferrer">src-news-ai</a></td></tr><tr><td><code>news-003</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">KIND 잠정 신주 수량과 소각 4,901,094주의 단순 차이는 2,340,470주 증가지만 이는 Measurement Date 환율 전 계산이므로 최종 순주식수와 지분 희석 규모를 뜻하지 않는다. 최종 신주 수량이 소각 수량을 웃돌면 지분 희석이 발생하며, 유입 자금과 엔비디아의 전략적 참여가 수익으로 전환되면 그 경제적 부담을 일부 상쇄할 수 있다.</td><td>96%</td><td><a href="https://kind.krx.co.kr/external/2026/07/27/000002/20260727000004/11306.htm" target="_blank" rel="noreferrer">src-news-capital</a>, <a href="https://navercorp.com/en/investment/disclosure" target="_blank" rel="noreferrer">src-news-disclosure</a>, <a href="https://www.yna.co.kr/view/AKR20260727014751017" target="_blank" rel="noreferrer">src-news-ai</a></td></tr><tr><td><code>news-004</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">엔비디아 전략적 참여와 브룩필드 인프라 조달 협의는 인공지능 팩토리의 자금 선택지를 넓히지만 브룩필드 계약과 고객·가동률·단가는 확정 정보가 부족하다.</td><td>93%</td><td><a href="https://www.navercorp.com/media/pressReleasesDetail?seq=10034577" target="_blank" rel="noreferrer">src-fund-q2</a>, <a href="https://www.navercorp.com/api/article/download/a769655e-43a9-4be8-8e78-d091981b1803" target="_blank" rel="noreferrer">src-fund-deck</a>, <a href="https://kind.krx.co.kr/external/2026/07/27/000002/20260727000004/11306.htm" target="_blank" rel="noreferrer">src-news-capital</a>, <a href="https://www.yna.co.kr/view/AKR20260727014751017" target="_blank" rel="noreferrer">src-news-ai</a></td></tr><tr><td><code>synthesis-001</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">핵심 사업과 개인 간 거래 매출 성장, 엔비디아의 미화 10억 달러 자금 참여는 우호적이지만 영업이익은 줄었고 Measurement Date 환율 전에는 최종 신주 수량·순주식수 효과·희석 규모를 확정할 수 없다. 인공지능 팩토리의 경제성도 미확정이고 거래량이 약해 1~3개월 평가는 229,000~235,000원 돌파 또는 218,500원 이탈 전까지 균형이라는 추론이다.</td><td>90%</td><td><a href="https://api.finance.naver.com/siseJson.naver?symbol=035420&amp;requestType=1&amp;startTime=20250101&amp;endTime=20260828&amp;timeframe=day" target="_blank" rel="noreferrer">src-tech-naver</a>, <a href="https://kr.investing.com/equities/nhn-corp-historical-data" target="_blank" rel="noreferrer">src-tech-independent</a>, <a href="https://www.navercorp.com/media/pressReleasesDetail?seq=10034577" target="_blank" rel="noreferrer">src-fund-q2</a>, <a href="https://www.navercorp.com/api/article/download/a769655e-43a9-4be8-8e78-d091981b1803" target="_blank" rel="noreferrer">src-fund-deck</a>, <a href="https://kind.krx.co.kr/external/2026/07/27/000002/20260727000004/11306.htm" target="_blank" rel="noreferrer">src-news-capital</a>, <a href="https://navercorp.com/en/investment/disclosure" target="_blank" rel="noreferrer">src-news-disclosure</a>, <a href="https://www.yna.co.kr/view/AKR20260727014751017" target="_blank" rel="noreferrer">src-news-ai</a></td></tr></tbody></table></div></section>
+    <section><p class="eyebrow">근거 자료</p><h2>출처 목록</h2><ol class="sources"><li><a href="https://api.finance.naver.com/siseJson.naver?symbol=035420&amp;requestType=1&amp;startTime=20250101&amp;endTime=20260828&amp;timeframe=day" target="_blank" rel="noreferrer">네이버 금융 공개 시세 API - NAVER 일별 정규장 데이터</a><span><code>src-tech-naver</code> · 시장 데이터 제공사 API · 2026-08-28T15:30:00+09:00</span></li><li><a href="https://kr.investing.com/equities/nhn-corp-historical-data" target="_blank" rel="noreferrer">인베스팅닷컴 - NAVER 2026년 8월 과거 시세</a><span><code>src-tech-independent</code> · 독립 시장 데이터 제공사 · 2026-08-28T15:30:00+09:00</span></li><li><a href="https://www.navercorp.com/media/pressReleasesDetail?seq=10034577" target="_blank" rel="noreferrer">NAVER 2026년 2분기 매출과 영업이익 발표</a><span><code>src-fund-q2</code> · 기업 공식 실적자료 · 2026-08-07T09:00:00+09:00</span></li><li><a href="https://www.navercorp.com/api/article/download/a769655e-43a9-4be8-8e78-d091981b1803" target="_blank" rel="noreferrer">NAVER 2026년 2분기 실적 발표자료</a><span><code>src-fund-deck</code> · 기업 공식 실적자료 · 2026-08-07T09:00:00+09:00</span></li><li><a href="https://kind.krx.co.kr/external/2026/07/27/000002/20260727000004/11306.htm" target="_blank" rel="noreferrer">한국거래소 KIND - NAVER 엔비디아 대상 제3자배정 유상증자 결정</a><span><code>src-news-capital</code> · 거래소 공식 공시 · 2026-07-27T07:34:00+09:00</span></li><li><a href="https://navercorp.com/en/investment/disclosure" target="_blank" rel="noreferrer">NAVER 공시 목록 - 자기주식 소각과 변경상장</a><span><code>src-news-disclosure</code> · 기업 공식 공시 목록 · 2026-08-19T15:30:00+09:00</span></li><li><a href="https://www.yna.co.kr/view/AKR20260727014751017" target="_blank" rel="noreferrer">NAVER·엔비디아·브룩필드 인공지능 팩토리 추진 보도</a><span><code>src-news-ai</code> · 독립 통신사 보도 · 2026-07-27T08:35:00+09:00</span></li></ol></section>
+    <footer><span>분석 근거 스키마 1.1 · 결정적 보고서</span><span>주문 실행 없음 · 개인화된 투자 조언 아님</span></footer>
+  </main>
+</body>
+</html>

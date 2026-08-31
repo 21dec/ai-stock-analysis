@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f3f0e7">
+  <title>005930 주식 분석</title>
+  <style>
+    :root {
+      --paper:#f3f0e7; --raised:#faf8f2; --ink:#181a17; --soft:#3f433e;
+      --muted:#6b6f68; --line:#cbc7bb; --strong:#7f827b; --green:#174f3a;
+      --green-pale:#e4ede7; --amber:#765817; --red:#963a31;
+      --display:AppleMyungjo,"Noto Serif KR","Nanum Myeongjo",Georgia,serif;
+      --body:Pretendard,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+      --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; color:var(--ink); background:var(--paper); font-family:var(--body); line-height:1.68; word-break:keep-all; -webkit-font-smoothing:antialiased; }
+    a { color:var(--green); text-underline-offset:3px; }
+    a:focus-visible { outline:3px solid var(--green); outline-offset:3px; }
+    h1,h2,h3,h4,p { margin-top:0; }
+    .page { width:min(1180px,calc(100% - 44px)); margin:0 auto 64px; }
+    .report-brand { min-height:68px; display:flex; justify-content:space-between; gap:20px; align-items:center; border-bottom:1px solid var(--ink); color:var(--muted); font:600 10px/1.3 var(--mono); }
+    .report-brand strong { color:var(--ink); font-family:var(--body); font-size:13px; letter-spacing:-.02em; }
+    .report-head { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:56px; align-items:end; padding:64px 0 46px; border-bottom:1px solid var(--ink); }
+    h1 { margin-bottom:14px; font:600 clamp(58px,9vw,108px)/.88 var(--display); letter-spacing:-.07em; }
+    h2 { margin-bottom:21px; font:600 clamp(31px,4vw,46px)/1.08 var(--display); letter-spacing:-.04em; }
+    h3 { font:600 24px/1.25 var(--display); }
+    h4 { margin:21px 0 8px; font:700 10px/1.3 var(--mono); letter-spacing:.06em; }
+    .eyebrow,.kicker { color:var(--green); font:750 10px/1.3 var(--mono); letter-spacing:.07em; }
+    .meta { padding:20px 0; border-top:2px solid var(--ink); border-bottom:1px solid var(--line); }
+    .meta span { display:block; color:var(--muted); font-size:10px; }
+    .meta strong { display:block; margin:6px 0; font:600 19px/1.3 var(--display); overflow-wrap:anywhere; }
+    section { padding:58px 0; border-bottom:1px solid var(--ink); }
+    .overview { display:grid; grid-template-columns:repeat(3,1fr); border-top:2px solid var(--ink); border-bottom:1px solid var(--line); }
+    .overview div { padding:20px; border-right:1px solid var(--line); }
+    .overview div:last-child { border-right:0; }
+    .overview strong { display:block; font:600 30px/1.1 var(--display); }
+    .overview span { color:var(--muted); font-size:11px; }
+    .lanes,.scenarios { display:grid; grid-template-columns:repeat(3,1fr); border-top:2px solid var(--ink); border-bottom:1px solid var(--line); }
+    .lane,.scenario { min-width:0; padding:23px; border-right:1px solid var(--line); }
+    .lane:last-child,.scenario:last-child { border-right:0; }
+    .lane strong { display:block; margin-top:24px; font:600 34px/1 var(--display); }
+    .lane small { color:var(--muted); }
+    .status,.kind { display:inline-block; padding:2px 6px; border:1px solid currentColor; font:700 9px/1.5 var(--mono); text-transform:uppercase; }
+    .status.complete,.kind.fact { color:var(--green); }
+    .status.omitted,.kind.inference { color:var(--amber); }
+    .scenario { min-height:410px; border-top:5px solid var(--strong); }
+    .scenario.bull { border-top-color:var(--green); }
+    .scenario.base { border-top-color:var(--soft); }
+    .scenario.bear { border-top-color:var(--red); }
+    .scenario .thesis { min-height:105px; font-size:16px; }
+    .scenario li { margin-bottom:7px; }
+    .refs,.muted,.empty { color:var(--muted); font-size:11px; }
+    .split { display:grid; grid-template-columns:1fr 1fr; gap:52px; }
+    ul { padding-left:20px; }
+    table { width:100%; border-collapse:collapse; font-size:12px; }
+    th,td { padding:12px 10px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { border-top:2px solid var(--ink); color:var(--muted); font:700 9px/1.3 var(--mono); }
+    .claim-text { min-width:340px; }
+    code { font-family:var(--mono); font-size:.9em; }
+    .table-wrap { overflow-x:auto; }
+    .sources { display:grid; grid-template-columns:repeat(2,1fr); gap:0 34px; padding:0; border-top:2px solid var(--ink); list-style:none; }
+    .sources li { padding:14px 0; border-bottom:1px solid var(--line); }
+    .sources span { display:block; color:var(--muted); font-size:11px; }
+    .analyst-report { padding-top:0; }
+    .analyst-report > .eyebrow { margin-top:55px; }
+    .analyst-lead { position:relative; padding:39px 42px 43px; color:var(--raised); background:var(--ink); }
+    .analyst-lead::before { position:absolute; inset:0 auto 0 0; width:6px; background:var(--green); content:""; }
+    .analyst-lead h3 { max-width:920px; margin:23px 0 0; font-size:clamp(31px,4.4vw,50px); letter-spacing:-.045em; }
+    .analyst-lead > p { max-width:900px; margin:19px 0 0; color:#c9ccc5; font-size:15px; }
+    .analyst-verdict { display:flex; flex-wrap:wrap; gap:8px; }
+    .analyst-verdict span { padding:5px 8px; border:1px solid #6f736c; color:#d8dbd4; font-size:10px; font-weight:700; }
+    .analyst-verdict .stance { border-color:#9bc4ad; color:#c7e5d3; }
+    .key-points { display:grid; grid-template-columns:repeat(3,1fr); border:1px solid var(--ink); border-top:0; }
+    .key-point { min-width:0; padding:24px; border-right:1px solid var(--line); }
+    .key-point:last-child { border-right:0; }
+    .key-point .number,.monitoring .number { color:var(--green); font:800 10px/1 var(--mono); }
+    .key-point h3 { margin:11px 0 9px; font-size:18px; }
+    .key-point p,.perspective p,.monitoring p { margin:0; color:var(--soft); font-size:13px; }
+    .analyst-refs { display:flex; flex-wrap:wrap; gap:5px; margin-top:14px; color:var(--muted); font:600 9px/1.5 var(--mono); }
+    .report-subhead { display:flex; justify-content:space-between; gap:20px; align-items:end; margin:38px 0 14px; }
+    .report-subhead h3,.report-subhead p { margin:0; }
+    .report-subhead h3 { font-size:24px; }
+    .report-subhead p { color:var(--muted); font-size:11px; }
+    .perspectives { display:grid; grid-template-columns:1fr 1fr; border-top:2px solid var(--ink); }
+    .perspective { min-width:0; padding:21px; border-right:1px solid var(--line); border-bottom:1px solid var(--line); border-left:4px solid var(--strong); }
+    .perspective:nth-child(even) { border-right:0; }
+    .perspective.impact-supportive { border-left-color:var(--green); }
+    .perspective.impact-mixed { border-left-color:var(--amber); }
+    .perspective.impact-cautionary { border-left-color:var(--red); }
+    .perspective header { display:flex; justify-content:space-between; gap:14px; padding:0; border:0; }
+    .perspective h3 { margin:0; font-size:16px; }
+    .perspective header span { color:var(--muted); font-size:9px; font-weight:700; }
+    .perspective p { margin-top:12px; }
+    .monitoring { margin:0; padding:0; border-top:2px solid var(--ink); list-style:none; }
+    .monitoring li { display:grid; grid-template-columns:42px minmax(0,1fr) minmax(170px,.35fr); gap:17px; padding:19px 0; border-bottom:1px solid var(--line); }
+    .monitoring h3 { margin:0 0 6px; font-size:16px; }
+    .monitoring .analyst-refs { justify-content:flex-end; margin-top:2px; }
+    .final-assessment { margin-top:38px; padding:23px 26px; border-left:5px solid var(--green); background:var(--green-pale); }
+    .final-assessment > span { color:var(--green); font:800 10px/1 var(--mono); }
+    .final-assessment > p { margin:8px 0 0; font-size:16px; font-weight:650; }
+    footer { display:flex; justify-content:space-between; gap:20px; padding:23px 0; color:var(--muted); font:500 10px/1.4 var(--mono); }
+    @keyframes reveal { from { opacity:0; transform:translateY(9px); } to { opacity:1; transform:translateY(0); } }
+    .report-head,.page > section { animation:reveal 420ms cubic-bezier(.2,.8,.2,1) both; }
+    .page > section:nth-of-type(1) { animation-delay:60ms; }
+    @media (max-width:820px) {
+      .page { width:min(100% - 28px,1180px); }
+      .report-brand { min-height:62px; align-items:flex-start; flex-direction:column; justify-content:center; gap:3px; }
+      .report-head,.split { grid-template-columns:1fr; }
+      .report-head { gap:30px; padding:45px 0 34px; }
+      .overview,.lanes,.scenarios,.sources,.key-points,.perspectives { grid-template-columns:1fr; }
+      .overview div,.lane,.scenario,.key-point,.perspective { border-right:0; border-bottom:1px solid var(--line); }
+      .overview div:last-child,.lane:last-child,.scenario:last-child,.key-point:last-child { border-bottom:0; }
+      section { padding:46px 0; }
+      .scenario { min-height:0; }
+      .analyst-report > .eyebrow { margin-top:45px; }
+      .analyst-lead { padding:29px 22px 31px 28px; }
+      .report-subhead { align-items:start; flex-direction:column; gap:4px; }
+      .monitoring li { grid-template-columns:27px 1fr; gap:8px; }
+      .monitoring .analyst-refs { grid-column:2; justify-content:flex-start; }
+      .final-assessment { padding:21px 18px; }
+      footer { align-items:flex-start; flex-direction:column; gap:7px; }
+    }
+    @media print {
+      body { background:white; }
+      .page { width:100%; margin:0; }
+      .report-brand { min-height:42px; }
+      .scenario,.lane,.key-point { break-inside:avoid; }
+      a { color:inherit; text-decoration:none; }
+    }
+    @media (prefers-reduced-motion:reduce) {
+      *,*::before,*::after { scroll-behavior:auto!important; animation:none!important; transition:none!important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="report-brand"><strong>나의 주식 분석</strong><span>수석 애널리스트 보고서 · 읽기 전용</span></div>
+    <header class="report-head">
+      <div><p class="eyebrow">검증된 주식 분석 · 한국거래소</p><h1>005930</h1><p>일봉 · 1~3개월 · 원</p></div>
+      <aside class="meta"><span>분석 기준 시각</span><strong>2026-08-28T15:30:00+09:00</strong><span>실행 기록 · 20260828-005930-daily</span></aside>
+    </header>
+
+    <section class="analyst-report"><p class="eyebrow">수석 애널리스트 브리핑</p><h2>종합 의견</h2><article class="analyst-lead"><div class="analyst-verdict"><span class="stance stance-balanced">현재 판단 · 균형</span><span>확신 수준 · 보통</span></div><h3>기록적 반도체 이익과 대규모 환원이 강하지만 50일선 아래 조정이 이어진다</h3><p>삼성전자는 인공지능 메모리 수요로 기록적 분기 실적을 냈고 90조~110조 원 규모의 주주환원 계획을 발표했다. 그러나 15조 원 자기주식 취득은 임직원 보상용이어서 소각과 같지 않다. 주가는 20일선 부근까지 되돌렸고 거래량이 평균 이하여서 252,000~254,000원 지지와 275,000원 회복을 함께 봐야 한다.</p></article><div class="key-points"><article class="key-point"><span class="number">01</span><h3>반도체가 기록적 이익을 만들었다</h3><p>연결 매출과 영업이익이 분기 최고치를 기록했고 반도체 사업이 영업이익 대부분을 차지했다. 그만큼 메모리 순환과 가격 변화에 대한 민감도도 크다.</p><div class="analyst-refs">근거 <code>fund-001</code> <code>fund-002</code> <code>fund-003</code></div></article><article class="key-point"><span class="number">02</span><h3>환원 계획의 성격을 구분해야 한다</h3><p>배당 계획은 현금환원에 우호적이지만 임직원 보상용 자기주식 취득은 소각과 동일하게 볼 수 없다.</p><div class="analyst-refs">근거 <code>news-001</code> <code>news-002</code> <code>news-003</code></div></article><article class="key-point"><span class="number">03</span><h3>가격은 20일선 지지를 시험한다</h3><p>종가는 20일선 바로 위지만 50일선 아래이고 최근 조정의 거래량도 평균 이하여서 방향 확인이 더 필요하다.</p><div class="analyst-refs">근거 <code>tech-002</code> <code>tech-003</code> <code>tech-005</code> <code>tech-006</code></div></article></div><div class="report-subhead"><h3>관점별 종합</h3><p>각 분석이 최종 판단에 미친 영향입니다.</p></div><div class="perspectives"><article class="perspective impact-mixed"><header><h3>기술적 관점</h3><span>혼재</span></header><p>20일선 위라는 점은 지지 요인이지만 50일선과 281,500~284,500원 저항을 회복하지 못했다.</p><div class="analyst-refs">근거 <code>tech-003</code> <code>tech-004</code> <code>tech-005</code> <code>tech-006</code></div></article><article class="perspective impact-supportive"><header><h3>펀더멘털 관점</h3><span>긍정 기여</span></header><p>기록적 반도체 이익은 우호적이지만 이익 집중으로 메모리 업황 변화에 대한 민감도가 커졌다.</p><div class="analyst-refs">근거 <code>fund-001</code> <code>fund-002</code> <code>fund-003</code></div></article><article class="perspective impact-supportive"><header><h3>뉴스·시장 관점</h3><span>긍정 기여</span></header><p>대규모 환원 계획은 우호적이지만 자기주식 취득 목적과 실제 집행을 구분해 확인해야 한다.</p><div class="analyst-refs">근거 <code>news-001</code> <code>news-002</code> <code>news-003</code></div></article><article class="perspective impact-cautionary"><header><h3>반대 관점</h3><span>주의 요인</span></header><p>메모리 이익 집중, 완제품 비용 압력, 임직원 보상용 자기주식의 향후 처분 가능성과 50일선 저항이 핵심 위험이다.</p><div class="analyst-refs">근거 <code>fund-003</code> <code>news-003</code> <code>tech-003</code> <code>tech-006</code></div></article></div><div class="report-subhead"><h3>판단을 바꿀 신호</h3><p>다음 분석에서 우선 확인할 항목입니다.</p></div><ol class="monitoring"><li><span class="number">01</span><div><h3>275,000원 회복과 거래량 증가</h3><p>직전 20거래일 평균을 웃도는 거래량으로 50일선을 회복하면 중기 구조 개선 가능성이 높아진다.</p></div><div class="analyst-refs">근거 <code>tech-003</code> <code>tech-005</code> <code>tech-006</code> <code>synthesis-001</code></div></li><li><span class="number">02</span><div><h3>252,000~254,000원 지지</h3><p>20일선을 지키면 기준 시나리오가 유지되지만 종가 이탈이 반복되면 224,000~230,000원 구간 재시험 위험이 커진다.</p></div><div class="analyst-refs">근거 <code>tech-003</code> <code>tech-004</code> <code>tech-006</code></div></li><li><span class="number">03</span><div><h3>반도체 이익과 환원 집행</h3><p>메모리 이익의 지속성과 발표된 배당·자기주식 취득의 실제 집행을 함께 확인해야 한다.</p></div><div class="analyst-refs">근거 <code>fund-002</code> <code>fund-003</code> <code>news-001</code> <code>news-002</code></div></li></ol><aside class="final-assessment"><span>최종 판단</span><p>현재 판단은 균형이다. 실적과 현금환원은 강하지만 가격은 50일선 아래에서 20일선 지지를 시험하고 있다. 275,000원 회복, 252,000원 이탈, 반도체 이익과 환원 집행 가운데 어느 신호가 먼저 확인되는지가 다음 평가를 바꾼다.</p><div class="analyst-refs">근거 <code>tech-003</code> <code>tech-005</code> <code>tech-006</code> <code>fund-001</code> <code>fund-003</code> <code>news-001</code> <code>news-002</code> <code>news-003</code> <code>synthesis-001</code></div></aside></section>
+
+    <section>
+      <p class="eyebrow">검증 요약</p><h2>검증을 통과한 분석</h2>
+      <div class="overview"><div><strong>5</strong><span>출처</span></div><div><strong>13</strong><span>원자 주장</span></div><div><strong>통과</strong><span>반대 검토 · 2026-08-31T12:09:15+09:00</span></div></div>
+    </section>
+
+    <section><p class="eyebrow">독립 분석 영역</p><h2>세 개의 독립 분석</h2><div class="lanes"><article class="lane"><span class="status complete">완료</span><h3>기술</h3><strong>6</strong><small>개 주장 · 사실 3 · 추론 3</small></article><article class="lane"><span class="status complete">완료</span><h3>펀더멘털</h3><strong>3</strong><small>개 주장 · 사실 2 · 추론 1</small></article><article class="lane"><span class="status complete">완료</span><h3>뉴스</h3><strong>3</strong><small>개 주장 · 사실 2 · 추론 1</small></article></div></section>
+    <section><p class="eyebrow">조건별 시나리오</p><h2>상승·기준·하락 경로</h2><div class="scenarios"><article class="scenario bull"><p class="kicker">상승 시나리오</p><h3>상승</h3><p class="thesis">거래량을 동반해 275,000원을 회복하고 기록적 반도체 이익과 현금환원 집행이 이어지면 중기 구조가 강화된다.</p><h4>확인 조건</h4><ul><li>종가가 275,000원 위에서 형성되고 거래량이 직전 20거래일 평균을 상회</li><li>배당 집행이 구체화되고 반도체 영업이익의 급격한 둔화가 없음</li></ul><h4>무효화</h4><p>회복 후 2거래일 안에 254,000원 아래로 되돌아가거나 반도체 이익 전망·현금환원 규모가 후퇴하면 무효화된다.</p><p class="refs">근거 주장: tech-003, tech-005, tech-006, fund-002, news-001, news-003</p></article><article class="scenario base"><p class="kicker">기준 시나리오</p><h3>기준</h3><p class="thesis">실적과 환원을 재평가하며 252,000~275,000원 범위에서 방향을 확인하는 흐름을 기준으로 본다.</p><h4>확인 조건</h4><ul><li>252,000~254,000원 지지 유지</li><li>반도체 실적 강세와 발표된 배당 계획이 유지</li></ul><h4>무효화</h4><p>275,000원 상향 회복 또는 252,000원 하향 이탈이 평균 이상 거래량과 함께 확인되면 범위 가정이 무효화된다.</p><p class="refs">근거 주장: tech-003, tech-005, tech-006, fund-001, news-001, synthesis-001</p></article><article class="scenario bear"><p class="kicker">하락 시나리오</p><h3>하락</h3><p class="thesis">252,000원 지지가 무너지고 메모리 이익 둔화나 환원 집행 불확실성이 겹치면 최근 회복의 되돌림 위험이 커진다.</p><h4>확인 조건</h4><ul><li>평균 이상 거래량과 함께 252,000원 아래 일봉 마감</li><li>반도체 이익 둔화, 완제품 손익 악화 또는 환원 집행 지연</li></ul><h4>무효화</h4><p>254,000원을 회복하고 이어서 275,000원 위에서 종가가 형성되며 거래량이 증가하면 무효화된다.</p><p class="refs">근거 주장: tech-002, tech-003, tech-005, tech-006, fund-003, news-003</p></article></div></section>
+
+    <section>
+      <div class="split">
+        <div><p class="eyebrow">반대 근거</p><h2>충돌하는 증거</h2><ul><li>반도체 이익은 기록적이지만 연결 이익의 반도체 집중은 메모리 업황 변화에 대한 민감도를 높인다.</li><li>대규모 환원 발표는 우호적이지만 15조 원 자기주식 취득은 임직원 보상용이어서 소각과 동일하지 않다.</li><li>종가는 20일선 위지만 50일선 아래이고 최근 조정에서 거래량 확인이 부족하다.</li></ul></div>
+        <div><p class="eyebrow">분석 공백</p><h2>판단의 한계</h2><ul><li>정보 제공 목적의 조건별 분석이며 개인화된 투자 조언이 아니다.</li><li>2026년 주주환원 총액은 회사 추정치이며 실제 자유현금흐름과 이사회 집행에 따라 달라질 수 있다.</li><li>임직원 보상용 자기주식의 최종 처분 시점과 주당 희석 효과는 확정되지 않았다.</li><li>기술지표는 공개 비조정 일봉에서 재계산했으며 지지와 저항은 관찰 구간이지 가격 결과를 보장하지 않는다.</li></ul></div>
+      </div>
+    </section>
+
+    <section><p class="eyebrow">원자 주장</p><h2>주장과 출처 추적</h2><div class="table-wrap"><table><thead><tr><th>식별자</th><th>구분</th><th>주장</th><th>신뢰도</th><th>출처</th></tr></thead><tbody><tr><td><code>tech-001</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">2026년 8월 28일 삼성전자 정규장 종가는 257,000원으로 전 거래일 대비 3.38% 하락했고, 시가 262,500원·고가 266,000원·저가 256,000원·거래량 15,106,746주였다. 독립 시세 출처도 같은 종가를 제시했다.</td><td>99%</td><td><a href="https://api.finance.naver.com/siseJson.naver?symbol=005930&amp;requestType=1&amp;startTime=20250101&amp;endTime=20260828&amp;timeframe=day" target="_blank" rel="noreferrer">src-tech-naver</a>, <a href="https://mydividend.kr/stock/005930" target="_blank" rel="noreferrer">src-tech-independent</a></td></tr><tr><td><code>tech-002</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">종가는 최근 5거래일 8.70% 하락했지만 20거래일 기준 24.15% 상승했고 50거래일 기준 25.83% 하락해 단기 되돌림과 더 긴 조정 흐름이 겹쳐 있다.</td><td>96%</td><td><a href="https://api.finance.naver.com/siseJson.naver?symbol=005930&amp;requestType=1&amp;startTime=20250101&amp;endTime=20260828&amp;timeframe=day" target="_blank" rel="noreferrer">src-tech-naver</a></td></tr><tr><td><code>tech-003</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">20일·50일·200일 단순이동평균은 각각 254,200원, 274,970원, 207,875원으로 종가는 20일선과 200일선 위이며 50일선 아래다.</td><td>98%</td><td><a href="https://api.finance.naver.com/siseJson.naver?symbol=005930&amp;requestType=1&amp;startTime=20250101&amp;endTime=20260828&amp;timeframe=day" target="_blank" rel="noreferrer">src-tech-naver</a></td></tr><tr><td><code>tech-004</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">와일더 방식 14일 상대강도지수는 49.03이고 20일 볼린저 밴드는 하단 224,025원, 상단 284,375원이다.</td><td>96%</td><td><a href="https://api.finance.naver.com/siseJson.naver?symbol=005930&amp;requestType=1&amp;startTime=20250101&amp;endTime=20260828&amp;timeframe=day" target="_blank" rel="noreferrer">src-tech-naver</a></td></tr><tr><td><code>tech-005</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">8월 28일 거래량은 직전 20거래일 평균 약 27,356,288주의 0.55배여서 하락이 평균 이상의 거래 참여로 확인되지는 않았다.</td><td>94%</td><td><a href="https://api.finance.naver.com/siseJson.naver?symbol=005930&amp;requestType=1&amp;startTime=20250101&amp;endTime=20260828&amp;timeframe=day" target="_blank" rel="noreferrer">src-tech-naver</a>, <a href="https://mydividend.kr/stock/005930" target="_blank" rel="noreferrer">src-tech-independent</a></td></tr><tr><td><code>tech-006</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">관찰 지지는 20일선이 있는 252,000~254,000원, 다음 지지는 최근 20거래일 저점과 볼린저 하단이 겹치는 224,000~230,000원이다. 저항은 50일선 274,970원과 최근 고점·볼린저 상단이 모인 281,500~284,500원이다.</td><td>89%</td><td><a href="https://api.finance.naver.com/siseJson.naver?symbol=005930&amp;requestType=1&amp;startTime=20250101&amp;endTime=20260828&amp;timeframe=day" target="_blank" rel="noreferrer">src-tech-naver</a></td></tr><tr><td><code>fund-001</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">2026년 2분기 연결 매출은 171.5조 원, 영업이익은 89.5조 원으로 각각 전분기 대비 28%와 56% 증가하며 분기 최고치를 기록했다.</td><td>99%</td><td><a href="https://news.samsung.com/global/samsung-electronics-announces-second-quarter-2026-results" target="_blank" rel="noreferrer">src-fund-q2</a></td></tr><tr><td><code>fund-002</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">반도체 사업은 2분기 매출 127.5조 원, 영업이익 89.2조 원을 기록해 연결 영업이익의 대부분을 차지했고 메모리 실적이 핵심 동력이었다.</td><td>99%</td><td><a href="https://news.samsung.com/global/samsung-electronics-announces-second-quarter-2026-results" target="_blank" rel="noreferrer">src-fund-q2</a></td></tr><tr><td><code>fund-003</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">반도체 집중 이익 구조는 인공지능 메모리 수요에 유리하지만 완제품 사업의 비용 압력과 메모리 가격·설비투자 순환에 대한 실적 민감도를 높인다.</td><td>92%</td><td><a href="https://news.samsung.com/global/samsung-electronics-announces-second-quarter-2026-results" target="_blank" rel="noreferrer">src-fund-q2</a></td></tr><tr><td><code>news-001</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">이사회는 2026년 주주환원을 약 90조~110조 원으로 예상하고 약 30조 원 배당을 포함한 계획을 승인했다.</td><td>99%</td><td><a href="https://news.samsung.com/global/samsung-electronics-to-implement-largest-ever-shareholder-return-in-2026-estimated-at-krw-90-to-110-trillion" target="_blank" rel="noreferrer">src-news-return</a></td></tr><tr><td><code>news-002</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">회사는 임직원 주식보상 목적으로 15조 원 규모 보통주 53,285,968주를 8월 24일부터 11월 21일까지 장내 취득하기로 했으며 이는 소각 목적 취득과 구분해야 한다.</td><td>99%</td><td><a href="https://www.samsung.com/global/ir/reports-disclosures/public-disclosure-view.84756/" target="_blank" rel="noreferrer">src-news-buyback</a></td></tr><tr><td><code>news-003</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">대규모 배당은 주주 현금환원에 우호적이지만 임직원 보상용 자기주식 취득은 향후 처분 가능성이 있어 전체 취득액을 즉시 주식수 감소로 해석하면 안 된다.</td><td>94%</td><td><a href="https://news.samsung.com/global/samsung-electronics-to-implement-largest-ever-shareholder-return-in-2026-estimated-at-krw-90-to-110-trillion" target="_blank" rel="noreferrer">src-news-return</a>, <a href="https://www.samsung.com/global/ir/reports-disclosures/public-disclosure-view.84756/" target="_blank" rel="noreferrer">src-news-buyback</a></td></tr><tr><td><code>synthesis-001</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">기록적 반도체 이익과 대규모 현금환원은 강하지만 종가는 50일선 아래이고 최근 5거래일 조정에 거래량 확인이 약하다. 1~3개월 평가는 275,000원 회복 또는 252,000원 이탈 확인 전까지 균형이라는 추론이다.</td><td>91%</td><td><a href="https://api.finance.naver.com/siseJson.naver?symbol=005930&amp;requestType=1&amp;startTime=20250101&amp;endTime=20260828&amp;timeframe=day" target="_blank" rel="noreferrer">src-tech-naver</a>, <a href="https://mydividend.kr/stock/005930" target="_blank" rel="noreferrer">src-tech-independent</a>, <a href="https://news.samsung.com/global/samsung-electronics-announces-second-quarter-2026-results" target="_blank" rel="noreferrer">src-fund-q2</a>, <a href="https://news.samsung.com/global/samsung-electronics-to-implement-largest-ever-shareholder-return-in-2026-estimated-at-krw-90-to-110-trillion" target="_blank" rel="noreferrer">src-news-return</a>, <a href="https://www.samsung.com/global/ir/reports-disclosures/public-disclosure-view.84756/" target="_blank" rel="noreferrer">src-news-buyback</a></td></tr></tbody></table></div></section>
+    <section><p class="eyebrow">근거 자료</p><h2>출처 목록</h2><ol class="sources"><li><a href="https://api.finance.naver.com/siseJson.naver?symbol=005930&amp;requestType=1&amp;startTime=20250101&amp;endTime=20260828&amp;timeframe=day" target="_blank" rel="noreferrer">네이버 금융 공개 시세 API - 삼성전자 일별 정규장 데이터</a><span><code>src-tech-naver</code> · 시장 데이터 제공사 API · 2026-08-28T15:30:00+09:00</span></li><li><a href="https://mydividend.kr/stock/005930" target="_blank" rel="noreferrer">마이디비던드 - 삼성전자 2026년 8월 28일 종가</a><span><code>src-tech-independent</code> · 독립 시장 데이터 제공사 · 2026-08-28T15:30:00+09:00</span></li><li><a href="https://news.samsung.com/global/samsung-electronics-announces-second-quarter-2026-results" target="_blank" rel="noreferrer">삼성전자 2026년 2분기 실적 발표</a><span><code>src-fund-q2</code> · 기업 공식 실적자료 · 2026-07-30T10:00:00+09:00</span></li><li><a href="https://news.samsung.com/global/samsung-electronics-to-implement-largest-ever-shareholder-return-in-2026-estimated-at-krw-90-to-110-trillion" target="_blank" rel="noreferrer">삼성전자 2026년 사상 최대 주주환원 계획</a><span><code>src-news-return</code> · 기업 공식 발표 · 2026-08-21T10:00:00+09:00</span></li><li><a href="https://www.samsung.com/global/ir/reports-disclosures/public-disclosure-view.84756/" target="_blank" rel="noreferrer">삼성전자 자기주식 취득 결정 공시</a><span><code>src-news-buyback</code> · 기업 공식 공시 · 2026-08-21T15:30:00+09:00</span></li></ol></section>
+    <footer><span>분석 근거 스키마 1.1 · 결정적 보고서</span><span>주문 실행 없음 · 개인화된 투자 조언 아님</span></footer>
+  </main>
+</body>
+</html>

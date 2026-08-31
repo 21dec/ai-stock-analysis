@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f3f0e7">
+  <title>AMZN 주식 분석</title>
+  <style>
+    :root {
+      --paper:#f3f0e7; --raised:#faf8f2; --ink:#181a17; --soft:#3f433e;
+      --muted:#6b6f68; --line:#cbc7bb; --strong:#7f827b; --green:#174f3a;
+      --green-pale:#e4ede7; --amber:#765817; --red:#963a31;
+      --display:AppleMyungjo,"Noto Serif KR","Nanum Myeongjo",Georgia,serif;
+      --body:Pretendard,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+      --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; color:var(--ink); background:var(--paper); font-family:var(--body); line-height:1.68; word-break:keep-all; -webkit-font-smoothing:antialiased; }
+    a { color:var(--green); text-underline-offset:3px; }
+    a:focus-visible { outline:3px solid var(--green); outline-offset:3px; }
+    h1,h2,h3,h4,p { margin-top:0; }
+    .page { width:min(1180px,calc(100% - 44px)); margin:0 auto 64px; }
+    .report-brand { min-height:68px; display:flex; justify-content:space-between; gap:20px; align-items:center; border-bottom:1px solid var(--ink); color:var(--muted); font:600 10px/1.3 var(--mono); }
+    .report-brand strong { color:var(--ink); font-family:var(--body); font-size:13px; letter-spacing:-.02em; }
+    .report-head { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:56px; align-items:end; padding:64px 0 46px; border-bottom:1px solid var(--ink); }
+    h1 { margin-bottom:14px; font:600 clamp(58px,9vw,108px)/.88 var(--display); letter-spacing:-.07em; }
+    h2 { margin-bottom:21px; font:600 clamp(31px,4vw,46px)/1.08 var(--display); letter-spacing:-.04em; }
+    h3 { font:600 24px/1.25 var(--display); }
+    h4 { margin:21px 0 8px; font:700 10px/1.3 var(--mono); letter-spacing:.06em; }
+    .eyebrow,.kicker { color:var(--green); font:750 10px/1.3 var(--mono); letter-spacing:.07em; }
+    .meta { padding:20px 0; border-top:2px solid var(--ink); border-bottom:1px solid var(--line); }
+    .meta span { display:block; color:var(--muted); font-size:10px; }
+    .meta strong { display:block; margin:6px 0; font:600 19px/1.3 var(--display); overflow-wrap:anywhere; }
+    section { padding:58px 0; border-bottom:1px solid var(--ink); }
+    .overview { display:grid; grid-template-columns:repeat(3,1fr); border-top:2px solid var(--ink); border-bottom:1px solid var(--line); }
+    .overview div { padding:20px; border-right:1px solid var(--line); }
+    .overview div:last-child { border-right:0; }
+    .overview strong { display:block; font:600 30px/1.1 var(--display); }
+    .overview span { color:var(--muted); font-size:11px; }
+    .lanes,.scenarios { display:grid; grid-template-columns:repeat(3,1fr); border-top:2px solid var(--ink); border-bottom:1px solid var(--line); }
+    .lane,.scenario { min-width:0; padding:23px; border-right:1px solid var(--line); }
+    .lane:last-child,.scenario:last-child { border-right:0; }
+    .lane strong { display:block; margin-top:24px; font:600 34px/1 var(--display); }
+    .lane small { color:var(--muted); }
+    .status,.kind { display:inline-block; padding:2px 6px; border:1px solid currentColor; font:700 9px/1.5 var(--mono); text-transform:uppercase; }
+    .status.complete,.kind.fact { color:var(--green); }
+    .status.omitted,.kind.inference { color:var(--amber); }
+    .scenario { min-height:410px; border-top:5px solid var(--strong); }
+    .scenario.bull { border-top-color:var(--green); }
+    .scenario.base { border-top-color:var(--soft); }
+    .scenario.bear { border-top-color:var(--red); }
+    .scenario .thesis { min-height:105px; font-size:16px; }
+    .scenario li { margin-bottom:7px; }
+    .refs,.muted,.empty { color:var(--muted); font-size:11px; }
+    .split { display:grid; grid-template-columns:1fr 1fr; gap:52px; }
+    ul { padding-left:20px; }
+    table { width:100%; border-collapse:collapse; font-size:12px; }
+    th,td { padding:12px 10px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { border-top:2px solid var(--ink); color:var(--muted); font:700 9px/1.3 var(--mono); }
+    .claim-text { min-width:340px; }
+    code { font-family:var(--mono); font-size:.9em; }
+    .table-wrap { overflow-x:auto; }
+    .sources { display:grid; grid-template-columns:repeat(2,1fr); gap:0 34px; padding:0; border-top:2px solid var(--ink); list-style:none; }
+    .sources li { padding:14px 0; border-bottom:1px solid var(--line); }
+    .sources span { display:block; color:var(--muted); font-size:11px; }
+    .analyst-report { padding-top:0; }
+    .analyst-report > .eyebrow { margin-top:55px; }
+    .analyst-lead { position:relative; padding:39px 42px 43px; color:var(--raised); background:var(--ink); }
+    .analyst-lead::before { position:absolute; inset:0 auto 0 0; width:6px; background:var(--green); content:""; }
+    .analyst-lead h3 { max-width:920px; margin:23px 0 0; font-size:clamp(31px,4.4vw,50px); letter-spacing:-.045em; }
+    .analyst-lead > p { max-width:900px; margin:19px 0 0; color:#c9ccc5; font-size:15px; }
+    .analyst-verdict { display:flex; flex-wrap:wrap; gap:8px; }
+    .analyst-verdict span { padding:5px 8px; border:1px solid #6f736c; color:#d8dbd4; font-size:10px; font-weight:700; }
+    .analyst-verdict .stance { border-color:#9bc4ad; color:#c7e5d3; }
+    .key-points { display:grid; grid-template-columns:repeat(3,1fr); border:1px solid var(--ink); border-top:0; }
+    .key-point { min-width:0; padding:24px; border-right:1px solid var(--line); }
+    .key-point:last-child { border-right:0; }
+    .key-point .number,.monitoring .number { color:var(--green); font:800 10px/1 var(--mono); }
+    .key-point h3 { margin:11px 0 9px; font-size:18px; }
+    .key-point p,.perspective p,.monitoring p { margin:0; color:var(--soft); font-size:13px; }
+    .analyst-refs { display:flex; flex-wrap:wrap; gap:5px; margin-top:14px; color:var(--muted); font:600 9px/1.5 var(--mono); }
+    .report-subhead { display:flex; justify-content:space-between; gap:20px; align-items:end; margin:38px 0 14px; }
+    .report-subhead h3,.report-subhead p { margin:0; }
+    .report-subhead h3 { font-size:24px; }
+    .report-subhead p { color:var(--muted); font-size:11px; }
+    .perspectives { display:grid; grid-template-columns:1fr 1fr; border-top:2px solid var(--ink); }
+    .perspective { min-width:0; padding:21px; border-right:1px solid var(--line); border-bottom:1px solid var(--line); border-left:4px solid var(--strong); }
+    .perspective:nth-child(even) { border-right:0; }
+    .perspective.impact-supportive { border-left-color:var(--green); }
+    .perspective.impact-mixed { border-left-color:var(--amber); }
+    .perspective.impact-cautionary { border-left-color:var(--red); }
+    .perspective header { display:flex; justify-content:space-between; gap:14px; padding:0; border:0; }
+    .perspective h3 { margin:0; font-size:16px; }
+    .perspective header span { color:var(--muted); font-size:9px; font-weight:700; }
+    .perspective p { margin-top:12px; }
+    .monitoring { margin:0; padding:0; border-top:2px solid var(--ink); list-style:none; }
+    .monitoring li { display:grid; grid-template-columns:42px minmax(0,1fr) minmax(170px,.35fr); gap:17px; padding:19px 0; border-bottom:1px solid var(--line); }
+    .monitoring h3 { margin:0 0 6px; font-size:16px; }
+    .monitoring .analyst-refs { justify-content:flex-end; margin-top:2px; }
+    .final-assessment { margin-top:38px; padding:23px 26px; border-left:5px solid var(--green); background:var(--green-pale); }
+    .final-assessment > span { color:var(--green); font:800 10px/1 var(--mono); }
+    .final-assessment > p { margin:8px 0 0; font-size:16px; font-weight:650; }
+    footer { display:flex; justify-content:space-between; gap:20px; padding:23px 0; color:var(--muted); font:500 10px/1.4 var(--mono); }
+    @keyframes reveal { from { opacity:0; transform:translateY(9px); } to { opacity:1; transform:translateY(0); } }
+    .report-head,.page > section { animation:reveal 420ms cubic-bezier(.2,.8,.2,1) both; }
+    .page > section:nth-of-type(1) { animation-delay:60ms; }
+    @media (max-width:820px) {
+      .page { width:min(100% - 28px,1180px); }
+      .report-brand { min-height:62px; align-items:flex-start; flex-direction:column; justify-content:center; gap:3px; }
+      .report-head,.split { grid-template-columns:1fr; }
+      .report-head { gap:30px; padding:45px 0 34px; }
+      .overview,.lanes,.scenarios,.sources,.key-points,.perspectives { grid-template-columns:1fr; }
+      .overview div,.lane,.scenario,.key-point,.perspective { border-right:0; border-bottom:1px solid var(--line); }
+      .overview div:last-child,.lane:last-child,.scenario:last-child,.key-point:last-child { border-bottom:0; }
+      section { padding:46px 0; }
+      .scenario { min-height:0; }
+      .analyst-report > .eyebrow { margin-top:45px; }
+      .analyst-lead { padding:29px 22px 31px 28px; }
+      .report-subhead { align-items:start; flex-direction:column; gap:4px; }
+      .monitoring li { grid-template-columns:27px 1fr; gap:8px; }
+      .monitoring .analyst-refs { grid-column:2; justify-content:flex-start; }
+      .final-assessment { padding:21px 18px; }
+      footer { align-items:flex-start; flex-direction:column; gap:7px; }
+    }
+    @media print {
+      body { background:white; }
+      .page { width:100%; margin:0; }
+      .report-brand { min-height:42px; }
+      .scenario,.lane,.key-point { break-inside:avoid; }
+      a { color:inherit; text-decoration:none; }
+    }
+    @media (prefers-reduced-motion:reduce) {
+      *,*::before,*::after { scroll-behavior:auto!important; animation:none!important; transition:none!important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="report-brand"><strong>나의 주식 분석</strong><span>수석 애널리스트 보고서 · 읽기 전용</span></div>
+    <header class="report-head">
+      <div><p class="eyebrow">검증된 주식 분석 · NASDAQ</p><h1>AMZN</h1><p>일봉 · 1~3개월 · 미국 달러</p></div>
+      <aside class="meta"><span>분석 기준 시각</span><strong>2026-08-21T16:00:00-04:00</strong><span>실행 기록 · 20260821-AMZN-daily</span></aside>
+    </header>
+
+    <section class="analyst-report"><p class="eyebrow">수석 애널리스트 브리핑</p><h2>종합 의견</h2><article class="analyst-lead"><div class="analyst-verdict"><span class="stance stance-balanced">현재 판단 · 균형</span><span>확신 수준 · 보통</span></div><h3>AWS 고성장은 견조하지만 257달러 지지와 투자 현금화가 다음 확인 지점이다</h3><p>아마존은 2분기 AWS와 전체 영업이익이 빠르게 성장했고 최근 20거래일 수익률도 양수다. 그러나 8월 21일 종가는 20일선 아래로 내려왔고 RSI는 단기 과매도권에 가까우며, 대규모 인공지능 투자로 최근 12개월 잉여현금흐름은 유출로 전환됐다. 1~3개월에는 257.04달러 지지, 261.38달러 20일선 회복, 투자 이후 현금흐름 개선을 함께 확인해야 한다.</p></article><div class="key-points"><article class="key-point"><span class="number">01</span><h3>AWS가 성장과 이익의 핵심 동력이다</h3><p>AWS 매출은 37% 증가했고 영업이익도 전년 동기보다 크게 늘어 전체 사업 체력을 지지한다.</p><div class="analyst-refs">근거 <code>amzn-fund-001</code> <code>amzn-fund-002</code></div></article><article class="key-point"><span class="number">02</span><h3>투자 확대가 현금흐름 부담을 키웠다</h3><p>영업현금흐름은 증가했지만 잉여현금흐름은 유출로 바뀌었고 연간 자본지출 계획도 2,200억 달러로 높아졌다.</p><div class="analyst-refs">근거 <code>amzn-fund-003</code> <code>amzn-news-001</code></div></article><article class="key-point"><span class="number">03</span><h3>중기 상승분과 단기 과매도가 공존한다</h3><p>20거래일 수익률은 양수지만 종가는 20일선 아래이고 RSI는 24.52로 낮아 추세 약화와 반등 가능성을 함께 봐야 한다.</p><div class="analyst-refs">근거 <code>amzn-tech-002</code> <code>amzn-tech-003</code> <code>amzn-tech-004</code></div></article></div><div class="report-subhead"><h3>관점별 종합</h3><p>각 분석이 최종 판단에 미친 영향입니다.</p></div><div class="perspectives"><article class="perspective impact-mixed"><header><h3>기술적 관점</h3><span>혼재</span></header><p>257.04달러 지지와 과매도 반등 가능성은 있으나 261.38달러 20일선 회복 전에는 최근 하락의 종료를 확인하기 어렵다.</p><div class="analyst-refs">근거 <code>amzn-tech-001</code> <code>amzn-tech-002</code> <code>amzn-tech-003</code> <code>amzn-tech-004</code></div></article><article class="perspective impact-supportive"><header><h3>펀더멘털 관점</h3><span>긍정 기여</span></header><p>AWS와 전체 영업이익의 고성장은 우호적이지만 잉여현금흐름 유출로 투자 수익의 현금 전환 속도를 검증해야 한다.</p><div class="analyst-refs">근거 <code>amzn-fund-001</code> <code>amzn-fund-002</code> <code>amzn-fund-003</code></div></article><article class="perspective impact-mixed"><header><h3>뉴스·시장 관점</h3><span>혼재</span></header><p>수요가 자본지출 확대를 뒷받침하지만 3분기 매출 성장률 전망은 2분기보다 낮고 대규모 투자 부담이 남아 있다.</p><div class="analyst-refs">근거 <code>amzn-news-001</code> <code>amzn-news-002</code></div></article><article class="perspective impact-cautionary"><header><h3>반대 관점</h3><span>주의 요인</span></header><p>메모리·에너지 원가, 공급 제약, 관세·무역 정책과 자본지출 시점은 AWS 성장의 현금 전환을 늦출 수 있다.</p><div class="analyst-refs">근거 <code>amzn-fund-003</code> <code>amzn-news-001</code> <code>amzn-risk-001</code></div></article></div><div class="report-subhead"><h3>판단을 바꿀 신호</h3><p>다음 분석에서 우선 확인할 항목입니다.</p></div><ol class="monitoring"><li><span class="number">01</span><div><h3>257.04달러 당일 저점과 261.38달러 20일선</h3><p>저점을 지키고 20일선을 회복하면 과매도 반등이 추세 안정으로 이어질 수 있지만 257.04달러 종가 이탈은 약세 연장 신호다.</p></div><div class="analyst-refs">근거 <code>amzn-tech-001</code> <code>amzn-tech-002</code> <code>amzn-tech-003</code> <code>amzn-syn-001</code></div></li><li><span class="number">02</span><div><h3>284.02달러 최근 20거래일 고점</h3><p>평균 이상의 거래량으로 고점을 돌파해야 실적 발표 이후 상승 추세가 다시 가속된다는 근거가 생긴다.</p></div><div class="analyst-refs">근거 <code>amzn-tech-002</code> <code>amzn-tech-004</code></div></li><li><span class="number">03</span><div><h3>인공지능 투자 이후 잉여현금흐름</h3><p>AWS 성장을 유지하면서 잉여현금흐름이 개선되면 투자 효율 우려가 완화되고 유출 확대는 평가를 낮출 근거가 된다.</p></div><div class="analyst-refs">근거 <code>amzn-fund-002</code> <code>amzn-fund-003</code> <code>amzn-news-001</code></div></li><li><span class="number">04</span><div><h3>3분기 매출과 영업이익 전망 범위 충족</h3><p>전망 상단 달성은 성장률 둔화 우려를 완화하고 하단 미달은 수요와 투자 효율에 대한 경계를 높인다.</p></div><div class="analyst-refs">근거 <code>amzn-news-002</code> <code>amzn-risk-001</code></div></li></ol><aside class="final-assessment"><span>최종 판단</span><p>AWS 성장과 최근 20거래일 상승분은 지지 요인이지만 현재는 20일선 아래의 단기 과매도와 현금흐름 부담이 겹친다. 257.04달러 지지, 261.38달러 회복, 잉여현금흐름 개선 중 어느 신호가 먼저 확인되는지가 1~3개월 평가를 바꾼다.</p><div class="analyst-refs">근거 <code>amzn-tech-002</code> <code>amzn-tech-003</code> <code>amzn-fund-002</code> <code>amzn-fund-003</code> <code>amzn-news-001</code> <code>amzn-syn-001</code></div></aside></section>
+
+    <section>
+      <p class="eyebrow">검증 요약</p><h2>검증을 통과한 분석</h2>
+      <div class="overview"><div><strong>5</strong><span>출처</span></div><div><strong>11</strong><span>원자 주장</span></div><div><strong>통과</strong><span>반대 검토 · 2026-08-24T12:21:12+09:00</span></div></div>
+    </section>
+
+    <section><p class="eyebrow">독립 분석 영역</p><h2>세 개의 독립 분석</h2><div class="lanes"><article class="lane"><span class="status complete">완료</span><h3>기술</h3><strong>4</strong><small>개 주장 · 사실 2 · 추론 2</small></article><article class="lane"><span class="status complete">완료</span><h3>펀더멘털</h3><strong>4</strong><small>개 주장 · 사실 4 · 추론 0</small></article><article class="lane"><span class="status complete">완료</span><h3>뉴스</h3><strong>2</strong><small>개 주장 · 사실 2 · 추론 0</small></article></div></section>
+    <section><p class="eyebrow">조건별 시나리오</p><h2>상승·기준·하락 경로</h2><div class="scenarios"><article class="scenario bull"><p class="kicker">상승 시나리오</p><h3>상승</h3><p class="thesis">AWS 고성장이 이어지고 투자 효율 우려가 완화되며 가격이 최근 고점을 다시 시험하는 시나리오다.</p><h4>확인 조건</h4><ul><li>257.04달러 지지를 유지하고 261.38달러 20일선을 회복한다</li><li>284.02달러를 평균 이상의 거래량으로 돌파한다</li><li>AWS 성장 지속과 잉여현금흐름 개선이 함께 확인된다</li></ul><h4>무효화</h4><p>257.04달러를 종가로 이탈하거나 AWS 둔화와 현금 유출 확대가 함께 확인되면 무효다.</p><p class="refs">근거 주장: amzn-tech-001, amzn-tech-002, amzn-fund-002, amzn-fund-003, amzn-news-001</p></article><article class="scenario base"><p class="kicker">기준 시나리오</p><h3>기준</h3><p class="thesis">AWS 성장과 투자 부담이 맞서며 257.04~284.02달러 범위에서 방향을 탐색하는 시나리오다.</p><h4>확인 조건</h4><ul><li>257.04달러 부근 지지가 이어진다</li><li>261.38달러 20일선 주변에서 등락한다</li><li>3분기 매출과 영업이익이 회사 전망 범위를 충족한다</li></ul><h4>무효화</h4><p>284.02달러를 거래량과 함께 돌파하거나 257.04달러를 종가로 이탈하면 범위 가정은 무효다.</p><p class="refs">근거 주장: amzn-tech-001, amzn-tech-002, amzn-news-002, amzn-syn-001</p></article><article class="scenario bear"><p class="kicker">하락 시나리오</p><h3>하락</h3><p class="thesis">자본지출 증가가 현금흐름을 더 압박하고 성장률 둔화가 확인되며 단기 지지가 무너지는 시나리오다.</p><h4>확인 조건</h4><ul><li>257.04달러를 종가 기준으로 이탈한다</li><li>잉여현금흐름 유출이 확대된다</li><li>3분기 매출 또는 영업이익이 회사 전망 하단을 밑돈다</li></ul><h4>무효화</h4><p>284.02달러를 거래량과 함께 돌파하고 잉여현금흐름이 개선되면 무효다.</p><p class="refs">근거 주장: amzn-tech-001, amzn-fund-003, amzn-news-001, amzn-news-002, amzn-risk-001</p></article></div></section>
+
+    <section>
+      <div class="split">
+        <div><p class="eyebrow">반대 근거</p><h2>충돌하는 증거</h2><ul><li>AWS 매출과 영업이익은 빠르게 성장하지만 이를 수용하기 위한 대규모 설비투자가 잉여현금흐름을 유출로 바꿨다.</li><li>최근 20거래일 수익률은 양수지만 종가는 20일선 아래이고 단순 RSI는 과매도권에 가까워 시간축별 신호가 엇갈린다.</li><li>수요가 2,200억 달러 자본지출 확대를 뒷받침하지만 3분기 매출 성장률 전망은 2분기보다 낮다.</li></ul></div>
+        <div><p class="eyebrow">분석 공백</p><h2>판단의 한계</h2><ul><li>기술지표는 독립 제공사들의 비조정 일별 원자료를 2026년 8월 21일 정규장까지만 절단해 계산했으며 거래량 평균은 확인 가능한 최근 15거래일을 사용했다.</li><li>상대강도지수는 최근 14거래일 상승·하락분의 단순 평균 방식이며 와일더 평활 방식과 값이 다를 수 있다.</li><li>현재 가치평가 배수와 인공지능 설비투자의 프로젝트별 수익률은 검증 범위에 포함하지 못했다.</li><li>이 자료는 정보 제공용 연구이며 개인화된 투자 조언, 매수·매도 제안 또는 주문 지시가 아니다.</li></ul></div>
+      </div>
+    </section>
+
+    <section><p class="eyebrow">원자 주장</p><h2>주장과 출처 추적</h2><div class="table-wrap"><table><thead><tr><th>식별자</th><th>구분</th><th>주장</th><th>신뢰도</th><th>출처</th></tr></thead><tbody><tr><td><code>amzn-tech-001</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">2026년 8월 21일 정규장 시가는 약 260.74달러, 고가는 261.09달러, 저가는 257.04달러, 종가는 258.63달러였고 전 거래일보다 0.57% 하락했다. 독립 시세 세 곳의 종가가 일치했다.</td><td>99%</td><td><a href="https://www.statmuse.com/money/ask/amazon-stock-price-in-august-2026" target="_blank" rel="noreferrer">amzn-src-market-statmuse</a>, <a href="https://finance.yahoo.co.jp/quote/AMZN/history" target="_blank" rel="noreferrer">amzn-src-market-yahoojp</a>, <a href="https://www.odin500.com/historical-data/amzn" target="_blank" rel="noreferrer">amzn-src-market-odin</a></td></tr><tr><td><code>amzn-tech-002</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">8월 21일 종가는 20일 단순이동평균 261.38달러를 소폭 밑돌았지만 최근 20거래일 종가 수익률은 11.43%였고, 같은 기간 종가 범위는 226.65~284.02달러였다.</td><td>96%</td><td><a href="https://www.statmuse.com/money/ask/amazon-stock-price-in-august-2026" target="_blank" rel="noreferrer">amzn-src-market-statmuse</a>, <a href="https://www.odin500.com/historical-data/amzn" target="_blank" rel="noreferrer">amzn-src-market-odin</a></td></tr><tr><td><code>amzn-tech-003</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">단순 평균 방식 14일 상대강도지수는 24.52이고 20일 볼린저 밴드는 하단 228.28달러, 상단 294.48달러로 계산됐다. 실적 발표 뒤 상승분이 남아 20일 수익률은 양수지만 최근 하락으로 단기 과매도 반등 가능성이 커진 상태다.</td><td>92%</td><td><a href="https://www.statmuse.com/money/ask/amazon-stock-price-in-august-2026" target="_blank" rel="noreferrer">amzn-src-market-statmuse</a>, <a href="https://www.odin500.com/historical-data/amzn" target="_blank" rel="noreferrer">amzn-src-market-odin</a></td></tr><tr><td><code>amzn-tech-004</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">8월 21일 거래량은 약 3,565만 주로 최근 15거래일 평균 약 4,027만 주의 0.89배였다. 257.04달러 저점 지지는 관찰 대상이지만 거래량만으로 반전이 확인되지는 않았다.</td><td>93%</td><td><a href="https://www.statmuse.com/money/ask/amazon-stock-price-in-august-2026" target="_blank" rel="noreferrer">amzn-src-market-statmuse</a>, <a href="https://finance.yahoo.co.jp/quote/AMZN/history" target="_blank" rel="noreferrer">amzn-src-market-yahoojp</a></td></tr><tr><td><code>amzn-fund-001</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">2026년 2분기 순매출은 2,006억 달러로 전년 동기 대비 20% 증가했고 영업이익은 275억 달러로 43% 증가했다.</td><td>99%</td><td><a href="https://www.aboutamazon.com/news/company-news/amazon-earnings-q2-2026-report" target="_blank" rel="noreferrer">amzn-src-q2</a></td></tr><tr><td><code>amzn-fund-002</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">2026년 2분기 AWS 매출은 422억 달러로 전년 동기 대비 37% 증가했고 AWS 영업이익은 166억 달러로 전년 동기 102억 달러보다 늘었다.</td><td>99%</td><td><a href="https://www.aboutamazon.com/news/company-news/amazon-earnings-q2-2026-report" target="_blank" rel="noreferrer">amzn-src-q2</a>, <a href="https://apnews.com/article/b4ce02b4666a35b8975823c5c22072ee" target="_blank" rel="noreferrer">amzn-src-ap</a></td></tr><tr><td><code>amzn-fund-003</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">최근 12개월 영업현금흐름은 1,614억 달러로 33% 증가했지만 인공지능 투자 관련 설비 취득 증가로 잉여현금흐름은 76억 달러 유출로 전환됐다.</td><td>99%</td><td><a href="https://www.aboutamazon.com/news/company-news/amazon-earnings-q2-2026-report" target="_blank" rel="noreferrer">amzn-src-q2</a></td></tr><tr><td><code>amzn-news-001</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">아마존은 2026년 자본지출 전망을 2,000억 달러에서 2,200억 달러로 높였고, 경영진은 이 지출 수준에서도 당해 수요를 모두 충족할 용량이 부족하다고 설명했다.</td><td>98%</td><td><a href="https://apnews.com/article/b4ce02b4666a35b8975823c5c22072ee" target="_blank" rel="noreferrer">amzn-src-ap</a></td></tr><tr><td><code>amzn-news-002</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">회사는 2026년 3분기 순매출을 1,970억~2,020억 달러, 전년 동기 대비 성장률을 9~12%, 영업이익을 225억~265억 달러로 전망했다.</td><td>99%</td><td><a href="https://www.aboutamazon.com/news/company-news/amazon-earnings-q2-2026-report" target="_blank" rel="noreferrer">amzn-src-q2</a>, <a href="https://apnews.com/article/b4ce02b4666a35b8975823c5c22072ee" target="_blank" rel="noreferrer">amzn-src-ap</a></td></tr><tr><td><code>amzn-risk-001</code></td><td><span class="kind fact">사실</span></td><td class="claim-text">공식 실적자료는 관세·무역 정책, 에너지와 메모리칩을 포함한 자원·공급 변동성, 고객 수요, 경쟁과 대규모 투자 시점을 주요 불확실성으로 제시한다.</td><td>97%</td><td><a href="https://www.aboutamazon.com/news/company-news/amazon-earnings-q2-2026-report" target="_blank" rel="noreferrer">amzn-src-q2</a></td></tr><tr><td><code>amzn-syn-001</code></td><td><span class="kind inference">추론</span></td><td class="claim-text">AWS 고성장과 최근 20거래일의 양수 수익률은 사업·가격 모멘텀을 지지하지만, 20일선 하회와 단기 과매도, 2,200억 달러 자본지출 및 음의 잉여현금흐름이 공존한다. 1~3개월 평가는 257.04달러 지지와 261.38달러 회복을 확인할 때까지 균형이 적절하다는 추론이다.</td><td>90%</td><td><a href="https://www.statmuse.com/money/ask/amazon-stock-price-in-august-2026" target="_blank" rel="noreferrer">amzn-src-market-statmuse</a>, <a href="https://www.odin500.com/historical-data/amzn" target="_blank" rel="noreferrer">amzn-src-market-odin</a>, <a href="https://www.aboutamazon.com/news/company-news/amazon-earnings-q2-2026-report" target="_blank" rel="noreferrer">amzn-src-q2</a>, <a href="https://apnews.com/article/b4ce02b4666a35b8975823c5c22072ee" target="_blank" rel="noreferrer">amzn-src-ap</a></td></tr></tbody></table></div></section>
+    <section><p class="eyebrow">근거 자료</p><h2>출처 목록</h2><ol class="sources"><li><a href="https://www.statmuse.com/money/ask/amazon-stock-price-in-august-2026" target="_blank" rel="noreferrer">스탯뮤즈 - 아마존 2026년 8월 일별 정규장 시세</a><span><code>amzn-src-market-statmuse</code> · 독립 시장 데이터 제공사 · 2026-08-21T16:00:00-04:00</span></li><li><a href="https://finance.yahoo.co.jp/quote/AMZN/history" target="_blank" rel="noreferrer">야후 파이낸스 일본 - 아마존 2026년 8월 21일 정규장 시세</a><span><code>amzn-src-market-yahoojp</code> · 독립 시장 데이터 제공사 · 2026-08-21T16:00:00-04:00</span></li><li><a href="https://www.odin500.com/historical-data/amzn" target="_blank" rel="noreferrer">오딘500 - 아마존 장기 일별 시세 이력</a><span><code>amzn-src-market-odin</code> · 독립 시장 데이터 제공사 · 2026-08-21T16:00:00-04:00</span></li><li><a href="https://www.aboutamazon.com/news/company-news/amazon-earnings-q2-2026-report" target="_blank" rel="noreferrer">아마존 2026년 2분기 실적 발표</a><span><code>amzn-src-q2</code> · 기업 공식 실적자료 · 2026-07-30T16:00:00-04:00</span></li><li><a href="https://apnews.com/article/b4ce02b4666a35b8975823c5c22072ee" target="_blank" rel="noreferrer">아마존, 강한 2분기 실적 뒤 인공지능 등 기술 투자를 200억 달러 확대</a><span><code>amzn-src-ap</code> · 독립 통신사 보도 · 2026-07-30T20:26:36Z</span></li></ol></section>
+    <footer><span>분석 근거 스키마 1.1 · 결정적 보고서</span><span>주문 실행 없음 · 개인화된 투자 조언 아님</span></footer>
+  </main>
+</body>
+</html>
